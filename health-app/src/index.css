@@ -1,0 +1,95 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+/* ── Base reset — prevent any body-level scroll on mobile ───────── */
+html, body {
+  margin: 0;
+  padding: 0;
+  /* Lock body scroll so Safari rubber-band / over-scroll can't show
+     white gaps behind the fixed app layer */
+  overflow: hidden;
+  /* Fill the full viewport including areas behind Safari chrome */
+  height: 100%;
+}
+
+/* ── Design tokens ─────────────────────────────────────────────── */
+@theme {
+  /* Management palette */
+  --color-mgmt-bg:       #BEEDFF;
+  --color-mgmt-accent:   #0FBDFF;
+  --color-mgmt-bubble:   #50CFFF;
+  --color-mgmt-selected: #7EDCFF;
+  --color-mgmt-next:     #0FBEFF;
+
+  /* Learning palette */
+  --color-learn-bg:       #EDE0FF;
+  --color-learn-accent:   #8B5CF6;
+  --color-learn-bubble:   #7C3AED;
+  --color-learn-selected: #C4B5FD;
+
+  /* Actions palette */
+  --color-action-bg:     #D1FAE5;
+  --color-action-accent: #059669;
+  --color-action-bubble: #047857;
+
+  /* Font */
+  --font-sans: 'Nunito', sans-serif;
+}
+
+/* ── Base reset (inside @layer base so Tailwind utilities always win) */
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    min-height: 100vh;
+  }
+
+
+  #root {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 32px 24px 48px;
+  }
+
+  button { font-family: 'Nunito', sans-serif; cursor: pointer; border: none; outline: none; }
+}
+
+/* ── Keyframe animations ────────────────────────────────────────── */
+@keyframes fade-slide-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-up-sheet {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slide-in-from-right {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+@keyframes slide-in-from-left {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0); }
+}
+
+/* ── Bubble tail helpers — CSS triangle pointing UP toward the cat
+      Position (left/right) is set via inline style per component   */
+.tail-blue, .tail-purple, .tail-green {
+  position: absolute; top: -16px; width: 0; height: 0; z-index: 1;
+  border-left: 14px solid transparent; border-right: 14px solid transparent;
+}
+.tail-blue   { border-bottom: 18px solid #50CFFF; }
+.tail-purple { border-bottom: 18px solid #7C3AED; }
+.tail-green  { border-bottom: 18px solid #047857; }

@@ -1,0 +1,306 @@
+/* ── Action Screen ────────────────────────────────────────── */
+/* Figma colours: bg #B6FF81 · phase #27D101 · bubble #27D101 · commit btn #89F53A / text #B7FF82 */
+
+.action-screen {
+  background: #B6FF81;
+  overflow-y: auto;
+}
+
+/* ── Header ── */
+.action-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.action-close-btn {
+  background: none;
+  color: #231F20;
+  font-size: 17px;
+  font-weight: 800;
+  padding: 0;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.action-progress-bar {
+  flex: 1;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.45);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.action-progress-fill {
+  width: 100%;
+  height: 100%;
+  background: #27D101;
+  border-radius: 99px;
+}
+
+.action-bulb {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* ── Phase label ── */
+.action-phase-label {
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #27D101;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+/* ── Title ── */
+.action-title {
+  font-size: 20px;
+  font-weight: 500;
+  color: #000000;
+  line-height: 1.3;
+  margin-bottom: 10px;
+}
+
+/* ── Mascot ── */
+.action-mascot {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2px;
+}
+
+/* ── Speech bubble ── */
+.action-bubble {
+  position: relative;
+  background: #27D101;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.45;
+  border-radius: 14px;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+}
+
+.action-bubble-tail {
+  position: absolute;
+  top: -14px;
+  left: 40px;
+  width: 0;
+  height: 0;
+  border-left: 13px solid transparent;
+  border-right: 13px solid transparent;
+  border-bottom: 16px solid #27D101;
+}
+
+/* ── Tally row ── */
+.action-tally-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #89F53A;
+  border-radius: 10px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+}
+
+.action-tally-label {
+  font-size: 10px;
+  font-weight: 800;
+  color: #1FA700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex: 1;
+}
+
+.action-tally-pts {
+  font-size: 15px;
+  font-weight: 900;
+  color: #0E3800;
+  white-space: nowrap;
+  margin-left: 8px;
+}
+
+/* ── Action list ── */
+.action-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.action-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 12px;
+  padding: 11px 13px;
+  text-align: left;
+  border: 2px solid transparent;
+  transition: border-color 0.15s, background 0.15s, transform 0.1s;
+}
+
+.action-item:hover {
+  border-color: #27D101;
+}
+
+.action-item:active {
+  transform: scale(0.98);
+}
+
+.action-item-selected {
+  background: #D4FFB8 !important;
+  border-color: #27D101 !important;
+}
+
+.action-item-check {
+  font-size: 16px;
+  font-weight: 900;
+  color: #27D101;
+  flex-shrink: 0;
+  width: 18px;
+  text-align: center;
+}
+
+.action-item-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.action-item-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0E3800;
+  flex: 1;
+  line-height: 1.35;
+}
+
+.action-pts-badge {
+  font-size: 11px;
+  font-weight: 800;
+  color: #1FA700;
+  background: rgba(39, 209, 1, 0.15);
+  border-radius: 20px;
+  padding: 3px 8px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* ── Commit button — Figma: bg #89F53A, text colour #B7FF82 ── */
+.action-commit-btn {
+  width: 100%;
+  background: #89F53A;
+  color: #B7FF82;
+  font-family: 'Nunito', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  border-radius: 12px;
+  padding: 13px;
+  transition: background 0.2s, opacity 0.2s, transform 0.1s;
+  margin-top: auto;
+}
+
+.action-commit-btn:hover:not(:disabled) {
+  background: #70DC28;
+}
+
+.action-commit-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.action-commit-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── Success state ── */
+.action-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  flex: 1;
+}
+
+.action-success-badge {
+  font-size: 56px;
+  animation: popIn 0.4s ease;
+}
+
+@keyframes popIn {
+  from { transform: scale(0.5); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+
+.action-success-heading {
+  font-size: 24px;
+  font-weight: 900;
+  color: #0E3800;
+}
+
+.action-success-sub {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1A5E30;
+  line-height: 1.5;
+}
+
+.action-pts-display {
+  font-size: 22px;
+  font-weight: 900;
+  color: #1FA700;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  padding: 10px 24px;
+}
+
+.action-committed-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+}
+
+.action-committed-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0E3800;
+}
+
+.action-committed-item span:nth-child(2) {
+  flex: 1;
+}
+
+.action-restart-btn {
+  width: 100%;
+  background: #27D101;
+  color: #ffffff;
+  font-family: 'Nunito', sans-serif;
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  border-radius: 12px;
+  padding: 14px;
+  transition: background 0.2s, transform 0.1s;
+  margin-top: 4px;
+}
+
+.action-restart-btn:hover {
+  background: #1FA700;
+}
+
+.action-restart-btn:active {
+  transform: scale(0.98);
+}

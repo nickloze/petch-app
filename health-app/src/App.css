@@ -1,0 +1,10 @@
+/* App wrapper — centres the iPhone 16/17 Pro frame on screen   */
+.app-wrapper {
+  display: flex;
+  align-items: flex-start;      /* prevent vertical clip on short viewports */
+  justify-content: center;
+  min-height: 100vh;
+  width: 100%;
+  padding: 32px 24px 48px;
+  box-sizing: border-box;
+}

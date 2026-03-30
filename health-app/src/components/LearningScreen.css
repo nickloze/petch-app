@@ -1,0 +1,181 @@
+/* ── Learning Screen ──────────────────────────────────────── */
+/* Figma colours: bg #E2AEFF · bubble #A400FF · btn #A400FF · selected #CC6FFF */
+
+.learn-screen {
+  background: #E2AEFF;
+}
+
+/* ── Header ── */
+.learn-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.learn-close-btn {
+  background: none;
+  color: #231F20;
+  font-size: 17px;
+  font-weight: 800;
+  padding: 0;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.learn-progress-bar {
+  flex: 1;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.45);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.learn-progress-fill {
+  height: 100%;
+  background: #A400FF;
+  border-radius: 99px;
+  transition: width 0.4s ease;
+}
+
+.learn-bulb {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* ── Phase label ── */
+.learn-phase-label {
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #A400FF;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+/* ── Title ── */
+/* Figma: white text, fw=500 */
+.learn-title {
+  font-size: 20px;
+  font-weight: 500;
+  color: #ffffff;
+  line-height: 1.3;
+  margin-bottom: 10px;
+}
+
+/* ── Mascot ── */
+.learn-mascot {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2px;
+}
+
+/* ── Speech bubble ── */
+.learn-bubble {
+  position: relative;
+  background: #A400FF;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.45;
+  border-radius: 14px;
+  padding: 14px 18px;
+  margin-bottom: 16px;
+}
+
+.learn-bubble-tail {
+  position: absolute;
+  top: -14px;
+  left: 40px;
+  width: 0;
+  height: 0;
+  border-left: 13px solid transparent;
+  border-right: 13px solid transparent;
+  border-bottom: 16px solid #A400FF;
+}
+
+.learn-bubble-hint {
+  font-style: italic;
+  opacity: 0.85;
+}
+
+/* ── Answer option buttons ── */
+.learn-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.learn-option-btn {
+  background: #A400FF;
+  color: #ffffff;
+  font-family: 'Nunito', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  border-radius: 12px;
+  padding: 13px 18px;
+  text-align: center;
+  border: none;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.learn-option-btn:hover {
+  background: #8E00D8;
+}
+
+.learn-option-btn:active {
+  transform: scale(0.98);
+}
+
+/* Selected = lighter shade (as per Figma) */
+.learn-option-selected {
+  background: #CC6FFF !important;
+  font-weight: 800;
+}
+
+/* ── Skip link ── */
+.learn-skip-btn {
+  background: none;
+  color: #CC6FFF;
+  font-family: 'Nunito', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  display: block;
+  margin: 0 auto 12px;
+}
+
+.learn-skip-btn:hover {
+  opacity: 0.75;
+}
+
+/* ── Submit button ── */
+.learn-submit-btn {
+  width: 100%;
+  background: #CC6FFF;
+  color: #ffffff;
+  font-family: 'Nunito', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  border-radius: 12px;
+  padding: 13px;
+  transition: background 0.2s, opacity 0.2s, transform 0.1s;
+  margin-top: auto;
+}
+
+.learn-submit-btn:hover:not(:disabled) {
+  background: #B85AEE;
+}
+
+.learn-submit-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.learn-submit-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

@@ -1,0 +1,196 @@
+/* ── Analysis / Insights Screen ──────────────────────────────── */
+/* Figma colours: bg #B6FF81 · panel #27D101 · btn #28D102 · lighter #89F53A */
+
+.analysis-screen {
+  background: #B6FF81;
+  overflow-y: auto;
+}
+
+/* ── Header bar (same structure as Talk / Learning) ── */
+.analysis-header-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.analysis-close-btn {
+  background: none;
+  color: #231F20;
+  font-size: 17px;
+  font-weight: 800;
+  padding: 0;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.analysis-progress-bar {
+  flex: 1;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.45);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.analysis-progress-fill {
+  height: 100%;
+  background: #27D101;
+  border-radius: 99px;
+}
+
+.analysis-bulb {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* ── "YOUR HEALTH INSIGHTS" label row ── */
+.analysis-label-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.analysis-label-icon {
+  font-size: 20px;
+}
+
+.analysis-label-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: #000000;
+  letter-spacing: 0.5px;
+}
+
+/* ── Cat + score side by side ── */
+.analysis-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.analysis-score-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 16px;
+  padding: 12px 20px;
+  gap: 4px;
+}
+
+.analysis-score-emoji {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.analysis-score-number {
+  font-size: 32px;
+  font-weight: 900;
+  color: #1FA700;
+  line-height: 1;
+}
+
+.analysis-score-label {
+  font-size: 12px;
+  font-weight: 800;
+  color: #1FA700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* ── Green insight panel (Figma: #27D101 fill) ── */
+.analysis-panel {
+  background: #27D101;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+  flex: 1;
+}
+
+.analysis-panel-heading {
+  font-size: 18px;
+  font-weight: 900;
+  color: #B7FF82;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+/* ── Insight cards inside the panel ── */
+.analysis-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.analysis-empty {
+  font-size: 14px;
+  color: #ffffff;
+  text-align: center;
+  padding: 10px;
+}
+
+.analysis-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.analysis-card-good {
+  border-left: 5px solid #89F53A;
+}
+
+.analysis-card-warn {
+  border-left: 5px solid #FFD600;
+}
+
+.analysis-card-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.analysis-card-category {
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #1FA700;
+  margin-bottom: 3px;
+}
+
+.analysis-card-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0E3800;
+  line-height: 1.4;
+}
+
+/* ── Next button (Figma: #28D102) ── */
+.analysis-next-btn {
+  width: 100%;
+  background: #28D102;
+  color: #ffffff;
+  font-family: 'Nunito', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  border-radius: 12px;
+  padding: 13px;
+  transition: background 0.2s, transform 0.1s;
+  margin-top: auto;
+}
+
+.analysis-next-btn:hover {
+  background: #1FA700;
+}
+
+.analysis-next-btn:active {
+  transform: scale(0.98);
+}
