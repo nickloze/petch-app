@@ -60,7 +60,7 @@ function playBuffer(buffer, volume = 1) {
 // ── Background music (HTMLAudioElement — better for long loops) ──
 const bgMusic  = new Audio('/sounds/bg-music.mp3')
 bgMusic.loop   = true
-bgMusic.volume = 0.18   // subtle ambience
+bgMusic.volume = 1.0    // full volume
 
 let musicStarted = false
 

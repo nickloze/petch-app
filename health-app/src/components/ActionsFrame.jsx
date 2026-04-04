@@ -1,16 +1,20 @@
 import { useState }           from 'react'
-import catSvg                from '../assets/Cat.svg'
+import catSvg                from '../assets/cat.svg'
 import { PHONE, Bulb }       from '../utils/frame.jsx'
 import { playMcq, playNext } from '../utils/sounds'
+import Coin                  from './Coin.jsx'
 
-// ── 3 sleep commitment actions ──────────────────────────────────
+// ── 3 sleep commitment actions — ordered ascending by coins ─────
 const ACTIONS = [
-  { id:'a1', emoji:'🌙', title:'Sleep by 10:30 PM tonight',
-    description:'Set a bedtime alarm and put your phone down 30 minutes before.' },
   { id:'a2', emoji:'📵', title:'No screens 30 mins before bed',
-    description:'Switch screens off and try reading or light stretching instead.' },
+    description:'Switch screens off and try reading or light stretching instead.',
+    coins: 1 },
   { id:'a3', emoji:'🧘', title:'Try a 5-min wind-down routine',
-    description:'Deep breathing or a short body scan to ease gently into sleep.' },
+    description:'Deep breathing or a short body scan to ease gently into sleep.',
+    coins: 2 },
+  { id:'a1', emoji:'🌙', title:'Sleep by 10:30 PM tonight',
+    description:'Set a bedtime alarm and put your phone down 30 minutes before.',
+    coins: 3 },
 ]
 
 // ── Progress bar (all 3 segments active = actions phase) ────────
@@ -32,9 +36,20 @@ function CelebrationCard({ action, onNext }) {
       <span className="text-5xl leading-none">🏆</span>
       <p className="text-3xl font-black text-[#064E3B]">You're committed!</p>
       <p className="text-base font-bold text-action-accent italic">"{action.title}"</p>
-      <p className="text-sm text-gray-500 leading-relaxed">
-        Petch is proud of you. Come back tomorrow to track your progress and earn rewards!
-      </p>
+
+      {/* Coin reward preview */}
+      <div className="flex flex-col items-center gap-2 bg-white rounded-[14px] px-6 py-4 w-full shadow-sm">
+        <Coin count={action.coins} size={48} />
+        <p className="text-sm text-[#064E3B] font-semibold leading-relaxed mt-1">
+          {action.coins === 1
+            ? 'A coin has been set aside, just for you.'
+            : `${action.coins} coins have been set aside, just for you.`}
+        </p>
+        <p className="text-xs text-gray-400 leading-relaxed">
+          Honour tonight's commitment and they will be yours — with Petch's warmest care.
+        </p>
+      </div>
+
       <button
         onClick={onNext}
         className="mt-2 px-8 py-3 bg-action-accent text-white font-bold text-base rounded-[10px]"
@@ -101,19 +116,23 @@ export default function ActionsFrame({ onRestart, onBack, onNext, entryAnim }) {
               key={action.id}
               onClick={() => { playMcq(); setSelected(isSel ? null : action) }}
               className={[
-                'w-full flex items-center gap-3 px-4 py-3 rounded-[12px] text-left transition-all',
+                'relative w-full flex items-center gap-3 px-4 py-3 rounded-[12px] text-left transition-all',
                 isSel
                   ? 'bg-[#ECFDF5] border-2 border-action-accent shadow-[4px_5px_0px_#059669]'
                   : 'bg-white border-2 border-transparent',
               ].join(' ')}
             >
               <span className="text-2xl shrink-0 leading-none">{action.emoji}</span>
-              <div className="flex-1">
+              <div className="flex-1 pr-2">
                 <p className="text-sm font-bold text-[#064E3B] leading-snug mb-0.5">{action.title}</p>
                 <p className="text-xs font-normal text-gray-500 leading-snug">{action.description}</p>
               </div>
-              {/* Animated checkmark */}
-              <span className={`text-lg font-black text-action-accent transition-all duration-200
+              {/* Coin reward badge */}
+              <div className="shrink-0">
+                <Coin count={action.coins} size={34} />
+              </div>
+              {/* Animated checkmark overlay */}
+              <span className={`absolute top-2 right-2 text-base font-black text-action-accent transition-all duration-200
                 ${isSel ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`}>
                 ✓
               </span>

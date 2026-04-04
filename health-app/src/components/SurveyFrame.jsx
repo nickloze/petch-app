@@ -48,7 +48,7 @@ export default function SurveyFrame({ onRestart, entryAnim }) {
       </div>
 
       {/* ── Spacer ── */}
-      <div className="flex-1" />
+      <div className="h-4" />
 
       {/* ── Pets illustration + speech bubble (combined section) ── */}
       <div className="shrink-0 flex flex-col items-center">
@@ -76,12 +76,12 @@ export default function SurveyFrame({ onRestart, entryAnim }) {
       </div>
 
       {/* ── Spacer ── */}
-      <div className="flex-1" />
+      <div className="h-4" />
 
       {/* ── Back button ── */}
       <button
         onClick={() => { playNext(); onRestart() }}
-        className="w-full h-[52px] bg-[#7EDCFF] text-white text-[18px] font-black rounded-[14px] shrink-0"
+        className="w-full h-[52px] bg-[#0FBDFF] text-white text-[18px] font-black rounded-[14px] shrink-0 transition-all hover:bg-[#7EDCFF] hover:shadow-[4px_5px_0_#50CFFF]"
       >
         BACK TO MAIN SCREEN
       </button>

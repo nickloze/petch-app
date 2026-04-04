@@ -2,9 +2,47 @@
 
 ## Project Overview
 
-Petch is a mobile-first health education demo app focused on sleep. Users progress through a linear flow: intro → sleep survey → personalised learning quiz → health insights dashboard → action commitment → feedback survey. Built as a design student's graduation project.
+Petch is the Duolingo for Health — a mobile-first health education app that uses gamification to help young adults (18–30) make healthier choices through daily incremental learning. The app covers multiple health topics: sleep, nutrition, wellness & exercise, and mental health, with more planned over time. Users progress through a Learning-Knowing-Doing loop: topic selection → get-to-know-me survey → personalised learning quiz → health insights dashboard → action commitment. Built as a design student's graduation project.
 
 **Live:** https://petch-health-app.vercel.app
+
+## Product Vision
+
+For the full specification, see `petch.md` in the project root. Key concepts:
+
+### Learning-Knowing-Doing Loop
+The core learning system. The app first understands the user (get-to-know-me survey), then delivers personalised health education (learning quiz), shows them where they stand (health overview), and asks them to commit to a daily action. This loop runs per topic, per day.
+
+### Digital Omotenashi
+The UX framework built on three pillars:
+- **Personalisation** — Tailor content and questions to the user's actual health habits and answers
+- **Anticipatory Design** — Surprise and delight through contextual nudges, notifications, and challenges the user didn't know they needed
+- **Empathy** — Sensitive, simple language; sustainable actions that keep users engaged without burnout
+
+### Pet Companion
+A digital pet (dog, cat, rabbit, or frog) that mirrors the user's learning progress and serves as their support system. Users can equip cosmetic items purchased with earned coins. The pet embodies the Digital Omotenashi framework — it encourages, nudges, and celebrates milestones.
+
+### Reward System
+- **Coins** — In-game currency earned from completing daily actions and learning sessions, exchangeable for vouchers
+- **Streaks** — Consecutive days of engagement, rewarding consistency with bonus coins or exclusive cosmetics
+- **Vouchers** — Health-aligned brand partner rewards (e.g. discounts on healthy food/drinks)
+
+### Community (Planned)
+- Public community for peer support, moderated discussion threads, and health Q&A
+- Private groups for accountability, group challenges, and shared habit-building
+- Short-form video content curated for credible, health-positive messaging
+
+### Health Topics
+Current: Sleep, Nutrition, Wellness & Exercise, Mental Health
+Planned: Hydration, Screen Time, Sexual Health, Substance Awareness, and more
+
+### Brand Colours
+- **Getting to Know You (Blue):** BG `#BEEDFF`, Bubble `#50CFFF`, Buttons `#0FBEFF`/`#7EDCFF`, Next `#7EDCFF`/`#0FBEFF`
+- **Learning (Purple):** BG `#E3AFFF`, Bubble `#BF48FF`, Buttons `#A500FF`/`#CC6FFF`, Next `#CC6FFF`/`#A500FF`
+- **Action (Green):** BG `#B7FF82`, Bubble `#28D102`, Buttons `#89F53A`/`#28D102`, Next `#89F53A`/`#28D102`
+
+### Typography
+Font: Nunito (Google Fonts)
 
 ## Tech Stack
 
@@ -23,10 +61,10 @@ src/
 ├── main.jsx                       # React entry point
 ├── components/
 │   ├── StartingScreen.jsx         # Welcome intro with cat + "LET'S START!!" CTA
-│   ├── ManagementFrame.jsx        # 4-question sleep survey (personal habits)
-│   ├── LearningFrame.jsx          # 4-question quiz personalised from management answers
+│   ├── ManagementFrame.jsx        # Get-to-know-me survey (personal health habits per topic)
+│   ├── LearningFrame.jsx          # Personalised learning quiz based on management answers
 │   ├── HealthOverviewFrame.jsx    # Insights dashboard with swipeable card carousel
-│   ├── ActionsFrame.jsx           # Pick 1 of 3 sleep commitments
+│   ├── ActionsFrame.jsx           # Pick 1 of 3 health action commitments
 │   └── SurveyFrame.jsx            # Thank-you screen with QR code to Google Form
 ├── utils/
 │   ├── frame.jsx                  # PHONE constant (iPhone 16/17 Pro shell) + Bulb icon
@@ -117,7 +155,7 @@ Vercel config is minimal — just `vercel.json` with `{ "name": "petch" }`. No S
 ```
 ManagementFrame
   → onComplete(resultById, resultByIndex)
-    → resultByIndex → LearningFrame (personalises quiz questions)
+    → resultByIndex → LearningFrame (personalises quiz questions per topic)
     → resultById   → HealthOverviewFrame (generates health insights)
 
 HealthOverviewFrame
@@ -136,6 +174,12 @@ ActionsFrame
 1. Create component in `src/components/`
 2. Add phase string + BG colour to `App.jsx` (BG map + applyPhaseColor call)
 3. Add transition handler and render in App.jsx's return block
+
+**Add a new health topic:**
+1. Add topic-specific questions to `QUESTIONS` / `BACKUP_POOL` arrays in `ManagementFrame.jsx`
+2. Add personalised question variants in `getQuestions(answers)` in `LearningFrame.jsx`
+3. Add insight rules in `getInsights(answers)` in `HealthOverviewFrame.jsx`
+4. Add topic-specific action commitments in `ActionsFrame.jsx`
 
 **Change theme colours:**
 Edit `@theme {}` block in `src/index.css`. All tokens are CSS custom properties consumed by Tailwind utilities.

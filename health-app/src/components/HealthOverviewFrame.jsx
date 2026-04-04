@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import catSvg from '../assets/Cat.svg'
+import catSvg from '../assets/cat.svg'
 import { PHONE } from '../utils/frame.jsx'
 import { playNext } from '../utils/sounds'
 

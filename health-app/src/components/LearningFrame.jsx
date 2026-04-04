@@ -1,5 +1,5 @@
 import { useState, useMemo, useLayoutEffect, useEffect } from 'react'
-import catSvg               from '../assets/Cat.svg'
+import catSvg               from '../assets/cat.svg'
 import { PHONE, Bulb }      from '../utils/frame.jsx'
 import { playMcq, playNext, playCorrect, playWrong } from '../utils/sounds'
 
