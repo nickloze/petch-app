@@ -1,5 +1,34 @@
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
+
+/* ── DIN Next Rounded LT Pro ──────────────────────────────────── */
+@font-face {
+  font-family: 'DIN Next Rounded';
+  src: url('/fonts/din-next-rounded-lt-pro-light.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'DIN Next Rounded';
+  src: url('/fonts/din-next-rounded-lt-pro-regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'DIN Next Rounded';
+  src: url('/fonts/din-next-rounded-lt-pro-medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'DIN Next Rounded';
+  src: url('/fonts/din-next-rounded-lt-pro-bold.otf') format('opentype');
+  font-weight: 600 900;
+  font-style: normal;
+  font-display: swap;
+}
 
 /* ── Base reset — prevent any body-level scroll on mobile ───────── */
 html, body {
@@ -8,32 +37,61 @@ html, body {
   /* Lock body scroll so Safari rubber-band / over-scroll can't show
      white gaps behind the fixed app layer */
   overflow: hidden;
-  /* Fill the full viewport including areas behind Safari chrome */
   height: 100%;
+  width: 100%;
+}
+
+/* ── Phone shell tracks the visual viewport ────────────────────────
+   --vvh and --vvoffset are set by the visualViewport listener in
+   App.jsx. 100dvh / 0 are the fallbacks for browsers without
+   visualViewport. When iOS opens the keyboard:
+     • --vvh  shrinks to (viewport height - keyboard height)
+     • --vvoffset becomes the amount iOS scrolled the layout viewport
+       upward to bring the focused input into view. We counter that
+       scroll with translateY so the shell stays pinned to the
+       visible area instead of getting pushed off the top. */
+.phone-shell {
+  height: var(--vvh, 100dvh);
+  transform: translateY(var(--vvoffset, 0px));
+  transition: transform 0.15s ease-out;
+}
+@media (min-width: 768px) {
+  /* Desktop: phone frame is centred in the viewport; don't translate */
+  .phone-shell {
+    transform: none;
+  }
 }
 
 /* ── Design tokens ─────────────────────────────────────────────── */
 @theme {
   /* Management palette */
-  --color-mgmt-bg:       #BEEDFF;
-  --color-mgmt-accent:   #0FBDFF;
-  --color-mgmt-bubble:   #50CFFF;
-  --color-mgmt-selected: #7EDCFF;
-  --color-mgmt-next:     #0FBEFF;
+  --color-mgmt-bg:               #00BAFF;   /* vivid cyan background */
+  --color-mgmt-bubble:           #50D8FF;   /* question bubble */
+  --color-mgmt-accent:           #50D8FF;   /* unselected buttons + scroll dot active */
+  --color-mgmt-selected:         #9AE9FF;   /* Blue 100 — selected button bg + scroll dot inactive */
+  --color-mgmt-next:             #50D8FF;   /* NEXT / FINISH button */
+  --color-mgmt-uncomfortable:    #72E0FF;   /* Blue 150 — "I'm uncomfortable" label */
+  --color-mgmt-phase-current:    #9AE9FF;   /* phase progress bar — current segment */
+  --color-mgmt-phase-upcoming:   #33CCFF;   /* phase progress bar — upcoming segments + pill */
 
-  /* Learning palette */
-  --color-learn-bg:       #EDE0FF;
-  --color-learn-accent:   #8B5CF6;
-  --color-learn-bubble:   #7C3AED;
-  --color-learn-selected: #C4B5FD;
+  /* Learning palette — Purple */
+  --color-learn-bg:              #8800d3;   /* purple-300 — deep background */
+  --color-learn-bubble:          #bf48ff;   /* purple-200 — question bubble */
+  --color-learn-accent:          #a500ff;   /* purple-250 — unselected buttons + badge + scroll dot active */
+  --color-learn-selected:        #dda3fc;   /* purple-100 — selected button bg + scroll dot inactive */
+  --color-learn-next:            #bf48ff;   /* purple-200 — NEXT / FINISH button */
+  --color-learn-uncomfortable:   #cc6fff;   /* purple-150 — "I'm uncomfortable" label */
+  --color-learn-phase-current:   #a500ff;   /* purple-250 — current phase segment */
+  --color-learn-phase-upcoming:  #dda3fc;   /* purple-100 — upcoming phase segments */
 
-  /* Actions palette */
-  --color-action-bg:     #D1FAE5;
-  --color-action-accent: #059669;
-  --color-action-bubble: #047857;
+  /* Actions palette — green-250/150/100 from Figma */
+  --color-action-bg:       #28D102;   /* green-250 — main background */
+  --color-action-bubble:   #81F42D;   /* green-150 — bubble + unselected buttons + commit btn */
+  --color-action-accent:   #81F42D;   /* green-150 */
+  --color-action-selected: #B7FF82;   /* green-100 — selected button bg + progress bar */
 
   /* Font */
-  --font-sans: 'Nunito', sans-serif;
+  --font-sans: 'DIN Next Rounded', sans-serif;
 }
 
 /* ── Base reset (inside @layer base so Tailwind utilities always win) */
@@ -41,7 +99,7 @@ html, body {
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    font-family: 'Nunito', sans-serif;
+    font-family: 'DIN Next Rounded', sans-serif;
     min-height: 100vh;
   }
 
@@ -55,8 +113,38 @@ html, body {
     padding: 32px 24px 48px;
   }
 
-  button { font-family: 'Nunito', sans-serif; cursor: pointer; border: none; outline: none; }
+  button { font-family: 'DIN Next Rounded', sans-serif; cursor: pointer; border: none; outline: none; }
 }
+
+/* ── Community / generic top-bar — safe-area padding only ────────── */
+/* Used by any screen whose top bar height is determined by content,  */
+/* not a fixed spec. Adds status-bar inset on real iPhones.           */
+.comm-top-bar {
+  padding-top: max(env(safe-area-inset-top, 0px), 12px);
+}
+@media (min-width: 768px) {
+  .comm-top-bar { padding-top: 64px; }
+}
+
+/* ── Home screen top-bar — adaptive height + safe-area padding ───── */
+/* On real iPhones (Safari / non-PWA) the viewport already starts     */
+/* below the status bar, so env(safe-area-inset-top) is 0 or small.  */
+/* The bar height = top-pad + 111px (title 25 + gap 12 + bubble 58   */
+/* + pb 16), so the inner gap stays consistent across all devices.   */
+/* On desktop (md:) the Figma spec is restored (175px / 64px).       */
+.home-top-bar {
+  padding-top: max(env(safe-area-inset-top, 0px), 12px);
+  height: calc(max(env(safe-area-inset-top, 0px), 12px) + 111px);
+}
+@media (min-width: 768px) {
+  .home-top-bar {
+    padding-top: 64px;
+    height: 175px;
+  }
+}
+
+/* Navy input placeholder (Health Overview theme) */
+.navy-input::placeholder { color: rgba(255, 255, 255, 0.6); }
 
 /* ── Keyframe animations ────────────────────────────────────────── */
 @keyframes fade-slide-up {
@@ -84,12 +172,66 @@ html, body {
   to   { transform: translateX(0); }
 }
 
+/* ── Sheet card transitions (subtler, in-panel slide+fade) ── */
+@keyframes sheet-slide-in-right {
+  from { transform: translateX(38%); opacity: 0; }
+  to   { transform: translateX(0);   opacity: 1; }
+}
+
+@keyframes sheet-slide-in-left {
+  from { transform: translateX(-38%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+@keyframes shoot-up {
+  from { transform: translateY(0);    opacity: 1; }
+  to   { transform: translateY(-130%); opacity: 0; }
+}
+
+@keyframes typing-dot {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30%            { transform: translateY(-4px); opacity: 1; }
+}
+
+@keyframes fade-out-down {
+  from { opacity: 1; transform: translateY(0);  }
+  to   { opacity: 0; transform: translateY(10px); }
+}
+
+@keyframes checkin-shimmer {
+  0%   { left: -60%; }
+  60%  { left: 120%; }
+  100% { left: 120%; }
+}
+
+@keyframes feature-shimmer {
+  0%   { left: -50%; }
+  55%  { left: 120%; }
+  100% { left: 120%; }
+}
+
+/* ── Flame streak bar — warm gradient shimmer ──────────────────── */
+@keyframes flame-shimmer {
+  0%   { background-position:   0% 50%; filter: brightness(1); }
+  50%  { background-position: 100% 50%; filter: brightness(1.15); }
+  100% { background-position:   0% 50%; filter: brightness(1); }
+}
+
+/* Respect user's reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* ── Bubble tail helpers — CSS triangle pointing UP toward the cat
       Position (left/right) is set via inline style per component   */
 .tail-blue, .tail-purple, .tail-green {
   position: absolute; top: -16px; width: 0; height: 0; z-index: 1;
   border-left: 14px solid transparent; border-right: 14px solid transparent;
 }
-.tail-blue   { border-bottom: 18px solid #50CFFF; }
-.tail-purple { border-bottom: 18px solid #7C3AED; }
-.tail-green  { border-bottom: 18px solid #047857; }
+.tail-blue   { border-bottom: 18px solid #50D8FF; }
+.tail-purple { border-bottom: 18px solid #bf48ff; }
+.tail-green  { border-bottom: 18px solid #81F42D; }

@@ -1,3 +1,6 @@
 {
-  "name": "petch"
+  "name": "petch",
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" }
+  ]
 }

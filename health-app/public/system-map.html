@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Petch — Digital Omotenashi System Map with Survey Data</title>
+<style>
+@font-face { font-family: 'DIN Next Rounded'; font-weight: 300; src: url('/fonts/din-next-rounded-lt-pro-light.otf') format('opentype'); }
+@font-face { font-family: 'DIN Next Rounded'; font-weight: 400; src: url('/fonts/din-next-rounded-lt-pro-regular.otf') format('opentype'); }
+@font-face { font-family: 'DIN Next Rounded'; font-weight: 500; src: url('/fonts/din-next-rounded-lt-pro-medium.otf') format('opentype'); }
+@font-face { font-family: 'DIN Next Rounded'; font-weight: 700; src: url('/fonts/din-next-rounded-lt-pro-bold.otf') format('opentype'); }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DIN Next Rounded', sans-serif; background: #dde1e6; display: flex; align-items: flex-start; justify-content: center; padding: 48px; min-height: 100vh; }
+
+.page { width: 1640px; background: #fff; border-radius: 28px; overflow: hidden; box-shadow: 0 24px 120px rgba(0,0,0,0.22); }
+
+/* ── HEADER ── */
+.header { background: linear-gradient(120deg, #0FBEFF 0%, #50CFFF 55%, #7EDCFF 100%); padding: 38px 64px 32px; display: flex; align-items: flex-end; justify-content: space-between; }
+.header h1 { font-size: 36px; font-weight: 900; color: #fff; letter-spacing: -0.5px; line-height: 1; }
+.header p { font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.82); margin-top: 6px; max-width: 640px; line-height: 1.5; }
+.header-pills { display: flex; flex-direction: column; align-items: flex-end; gap: 7px; }
+.pill { background: rgba(255,255,255,0.22); color: #fff; font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; padding: 5px 15px; border-radius: 999px; }
+
+/* ── EVOLUTION STRIP ── */
+.evolution-strip { background: #0e0c22; padding: 18px 64px; display: flex; align-items: center; gap: 0; border-bottom: 1px solid #ffffff08; }
+.evo-step { display: flex; align-items: center; gap: 12px; flex: 1; }
+.evo-node { display: flex; flex-direction: column; gap: 3px; }
+.evo-label { font-size: 9px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; }
+.evo-title { font-size: 13px; font-weight: 900; }
+.evo-sub { font-size: 11px; font-weight: 600; line-height: 1.3; }
+.evo-arrow { font-size: 20px; color: #ffffff20; flex-shrink: 0; padding: 0 16px; }
+.evo-step.passive .evo-label { color: #556; }
+.evo-step.passive .evo-title { color: #667; }
+.evo-step.passive .evo-sub { color: #445; }
+.evo-step.chatbot .evo-label { color: #7EDCFF66; }
+.evo-step.chatbot .evo-title { color: #7EDCFF88; }
+.evo-step.chatbot .evo-sub { color: #556677; }
+.evo-step.petch .evo-label { color: #0FBEFF; }
+.evo-step.petch .evo-title { color: #fff; }
+.evo-step.petch .evo-sub { color: #aabbcc; }
+.evo-divider { width: 1px; height: 40px; background: #ffffff10; flex-shrink: 0; margin: 0 24px; }
+
+/* ── DO PILLAR LEGEND ── */
+.do-legend { background: #07061a; padding: 20px 64px; display: flex; align-items: center; gap: 28px; border-bottom: 1px solid #ffffff07; }
+.do-legend-left { flex-shrink: 0; }
+.do-legend-label { font-size: 9px; font-weight: 900; letter-spacing: 2.5px; text-transform: uppercase; color: #7EDCFF; }
+.do-legend-title { font-size: 15px; font-weight: 900; color: #fff; white-space: nowrap; }
+.do-legend-sub { font-size: 11px; font-weight: 600; color: #445; margin-top: 1px; }
+.leg-divider { width: 1px; height: 44px; background: #ffffff10; flex-shrink: 0; }
+.pillar-def { display: flex; align-items: flex-start; gap: 10px; flex: 1; }
+.pil-icon { width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900; flex-shrink: 0; margin-top: 2px; }
+.pil-icon.p { background: #7EDCFF1a; color: #7EDCFF; border: 1px solid #7EDCFF33; }
+.pil-icon.a { background: #FFB3471a; color: #FFB347; border: 1px solid #FFB34733; }
+.pil-icon.e { background: #DDA3FC1a; color: #DDA3FC; border: 1px solid #DDA3FC33; }
+.pillar-def h4 { font-size: 12px; font-weight: 900; }
+.pillar-def h4.p { color: #7EDCFF; }
+.pillar-def h4.a { color: #FFB347; }
+.pillar-def h4.e { color: #DDA3FC; }
+.pillar-def p { font-size: 11px; font-weight: 600; color: #556; line-height: 1.4; margin-top: 2px; }
+
+/* ── BODY ── */
+.body { padding: 36px 64px 52px; display: flex; flex-direction: column; gap: 22px; background: #f2f3f6; }
+
+/* ── RESEARCH BANNER (6 cards) ── */
+.research-banner { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.r-card { border-radius: 14px; padding: 16px 18px; display: flex; flex-direction: column; gap: 9px; border: 1px solid; }
+.r-card.amber { background: #fff9ee; border-color: #ffcc6633; }
+.r-card.rose { background: #fff5f5; border-color: #ffaaaa33; }
+.r-card.slate { background: #f4f5f8; border-color: #ccccdd33; }
+.r-card.teal { background: #f0faf8; border-color: #33ccaa33; }
+.r-card.green { background: #f0fff5; border-color: #33cc6633; }
+.r-card.indigo { background: #f7f5ff; border-color: #8833ff33; }
+.r-source { font-size: 9px; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase; display: flex; align-items: center; gap: 6px; }
+.r-source.amber { color: #aa6600; }
+.r-source.rose { color: #aa2222; }
+.r-source.slate { color: #556; }
+.r-source.teal { color: #007755; }
+.r-source.green { color: #006622; }
+.r-source.indigo { color: #4400aa; }
+.r-source-badge { font-size: 9px; font-weight: 900; padding: 2px 8px; border-radius: 999px; }
+.r-source-badge.amber { background: #aa660022; color: #aa6600; border: 1px solid #aa660044; }
+.r-source-badge.rose { background: #aa222222; color: #aa2222; border: 1px solid #aa222244; }
+.r-source-badge.slate { background: #55555522; color: #556; border: 1px solid #55555544; }
+.r-source-badge.teal { background: #00775522; color: #007755; border: 1px solid #00775544; }
+.r-source-badge.green { background: #00662222; color: #006622; border: 1px solid #00662244; }
+.r-source-badge.indigo { background: #44009922; color: #4400aa; border: 1px solid #44009944; }
+.r-stat { font-size: 18px; font-weight: 900; line-height: 1; }
+.r-card.amber .r-stat { color: #aa6600; }
+.r-card.rose .r-stat { color: #aa2222; }
+.r-card.slate .r-stat { color: #556; }
+.r-card.teal .r-stat { color: #007755; }
+.r-card.green .r-stat { color: #006622; }
+.r-card.indigo .r-stat { color: #4400aa; }
+.r-label { font-size: 10px; font-weight: 700; }
+.r-card.amber .r-label { color: #5c3000; }
+.r-card.rose .r-label { color: #5c1010; }
+.r-card.slate .r-label { color: #334; }
+.r-card.teal .r-label { color: #004433; }
+.r-card.green .r-label { color: #002200; }
+.r-card.indigo .r-label { color: #220055; }
+.r-quote { font-size: 11px; font-weight: 700; line-height: 1.4; font-style: italic; }
+.r-card.amber .r-quote { color: #5c3000; }
+.r-card.rose .r-quote { color: #5c1010; }
+.r-card.slate .r-quote { color: #334; }
+.r-card.teal .r-quote { color: #004433; }
+.r-card.green .r-quote { color: #002200; }
+.r-card.indigo .r-quote { color: #220055; }
+.r-response { font-size: 11px; font-weight: 700; padding: 7px 10px; border-radius: 8px; line-height: 1.35; }
+.r-card.amber .r-response { background: #0FBEFF12; color: #004466; border-left: 3px solid #0FBEFF; }
+.r-card.rose .r-response { background: #8800D312; color: #440066; border-left: 3px solid #8800D3; }
+.r-card.slate .r-response { background: #FFB34712; color: #553300; border-left: 3px solid #FFB347; }
+.r-card.teal .r-response { background: #28D10212; color: #114400; border-left: 3px solid #28D102; }
+.r-card.green .r-response { background: #006622a8; color: #fff; border-left: 3px solid #00cc44; }
+.r-card.indigo .r-response { background: #4400aa22; color: #220055; border-left: 3px solid #8833ff; }
+.r-response strong { display: block; font-size: 9px; letter-spacing: 0.5px; text-transform: uppercase; opacity: 0.7; margin-bottom: 2px; }
+
+/* ── SURVEY INSIGHTS GRID ── */
+.insights-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  background: #f5f6f9;
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid #e0e2e8;
+}
+.insight-col h3 { font-size: 14px; font-weight: 900; color: #222; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.insight-col-label { font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; padding: 3px 10px; border-radius: 6px; white-space: nowrap; }
+.label.barriers { background: #ffcccc; color: #aa2222; }
+.label.features { background: #ccddff; color: #004477; }
+.label.tone { background: #fffacc; color: #aa6600; }
+.insight-items { display: flex; flex-direction: column; gap: 8px; }
+.insight-item { font-size: 11px; font-weight: 700; padding: 8px 10px; border-radius: 8px; display: flex; align-items: flex-start; gap: 8px; line-height: 1.35; }
+.barrier-item { background: #fff0f0; color: #5c1010; border-left: 3px solid #aa2222; }
+.feature-item { background: #f0f5ff; color: #004466; border-left: 3px solid #0FBEFF; }
+.tone-item { background: #fffbf0; color: #553300; border-left: 3px solid #FFB347; }
+.item-stat { font-weight: 900; display: block; font-size: 12px; margin-bottom: 2px; }
+
+/* ── DO FRAME ── */
+.do-frame { background: linear-gradient(155deg, #07061c 0%, #0b0929 100%); border-radius: 22px; padding: 26px 26px 26px; border: 1px solid #7EDCFF15; display: flex; flex-direction: column; gap: 18px; }
+.do-frame-header { display: flex; align-items: center; gap: 14px; padding-bottom: 16px; border-bottom: 1px solid #ffffff08; }
+.do-badge { font-size: 9px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: #7EDCFF; background: #7EDCFF12; border: 1px solid #7EDCFF2a; padding: 4px 13px; border-radius: 999px; white-space: nowrap; }
+.do-frame-title { font-size: 14px; font-weight: 800; color: #fff; }
+.do-frame-sub { font-size: 11px; font-weight: 600; color: #3a4455; margin-top: 1px; }
+
+/* ── MAIN GRID ── */
+.main-grid { display: grid; grid-template-columns: 200px 1fr 1fr; gap: 16px; align-items: start; }
+
+/* ════ CLAUDE ════ */
+.claude-card { background: #0b1525; border: 1.5px solid #7EDCFF2a; border-radius: 17px; overflow: hidden; display: flex; flex-direction: column; }
+.claude-main { padding: 18px 16px 14px; display: flex; flex-direction: column; gap: 9px; }
+.claude-tag { font-size: 9px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: #7EDCFF66; }
+.claude-title { font-size: 19px; font-weight: 900; color: #fff; line-height: 1; }
+.claude-model { font-size: 9px; font-weight: 700; color: #7EDCFF44; font-family: monospace; }
+.c-steps { display: flex; flex-direction: column; gap: 5px; margin-top: 2px; }
+.c-step { font-size: 10px; font-weight: 600; color: #6a8aaa; padding: 6px 8px; background: #7EDCFF05; border-radius: 6px; border-left: 2px solid #7EDCFF2a; line-height: 1.35; }
+.c-step strong { color: #7EDCFF88; display: block; font-size: 8px; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 1px; }
+.claude-do { border-top: 1px solid #7EDCFF0a; padding: 12px 16px; background: #07101e; display: flex; flex-direction: column; gap: 7px; }
+.claude-do-lbl { font-size: 8px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: #7EDCFF33; margin-bottom: 2px; }
+.do-note { display: flex; align-items: flex-start; gap: 7px; }
+.do-note p { font-size: 10px; font-weight: 600; color: #445566; line-height: 1.4; }
+
+/* ════ KLD ════ */
+.kld-col { display: flex; flex-direction: column; gap: 0; }
+.phase-card { border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; }
+.phase-main { padding: 18px 20px 14px; display: flex; flex-direction: column; gap: 9px; }
+.phase-tag { font-size: 8px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; opacity: 0.55; }
+.phase-card h2 { font-size: 24px; font-weight: 900; line-height: 1; }
+.phase-sub { font-size: 10px; font-weight: 700; opacity: 0.55; margin-top: -3px; }
+.phase-points { display: flex; flex-direction: column; gap: 5px; }
+.phase-point { font-size: 11px; font-weight: 600; display: flex; align-items: flex-start; gap: 6px; line-height: 1.4; }
+.pp-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+.phase-do { padding: 10px 20px 12px; display: flex; flex-direction: column; gap: 6px; }
+.do-row { display: flex; align-items: flex-start; gap: 7px; }
+.do-row p { font-size: 10px; font-weight: 600; line-height: 1.4; }
+
+/* Knowing */
+.phase-knowing .phase-main { background: #BEEDFF; }
+.phase-knowing .phase-tag, .phase-knowing .phase-sub { color: #005577; }
+.phase-knowing h2 { color: #003344; }
+.phase-knowing .phase-point { color: #004455; }
+.phase-knowing .pp-dot { background: #0FBEFF; }
+.phase-knowing .phase-do { background: #a6dcf5; }
+.phase-knowing .do-row p { color: #004466; }
+
+/* Learning */
+.phase-learning .phase-main { background: #8800D3; }
+.phase-learning .phase-tag, .phase-learning .phase-sub { color: #cc99ff; opacity: 1; }
+.phase-learning h2 { color: #fff; }
+.phase-learning .phase-point { color: #e0c0ff; }
+.phase-learning .pp-dot { background: #DDA3FC; }
+.phase-learning .phase-do { background: #6600aa; }
+.phase-learning .do-row p { color: #cc99ee; }
+
+/* Doing */
+.phase-doing .phase-main { background: #B7FF82; }
+.phase-doing .phase-tag, .phase-doing .phase-sub { color: #1a6000; }
+.phase-doing h2 { color: #0a2800; }
+.phase-doing .phase-point { color: #1a5000; }
+.phase-doing .pp-dot { background: #28D102; }
+.phase-doing .phase-do { background: #94e660; }
+.phase-doing .do-row p { color: #1a5000; }
+
+/* Connectors */
+.phase-connector { display: flex; align-items: stretch; gap: 0; padding: 0 4px; min-height: 52px; }
+.conn-line-wrap { display: flex; flex-direction: column; align-items: center; width: 28px; flex-shrink: 0; }
+.conn-line { flex: 1; width: 2px; background: #ffffff14; }
+.conn-arrow { color: #ffffff25; font-size: 12px; }
+.conn-annotation { flex: 1; display: flex; align-items: center; padding: 7px 10px; background: #ffffff05; border-radius: 9px; border: 1px solid #ffffff07; margin: 6px 0; }
+.conn-annotation p { font-size: 10px; font-weight: 600; color: #3a4a5a; line-height: 1.4; font-style: italic; }
+
+/* ════ RIGHT: ENGAGEMENT ════ */
+.right-col { display: flex; flex-direction: column; gap: 12px; }
+
+.tag { display: inline-flex; align-items: center; gap: 3px; font-size: 8px; font-weight: 900; letter-spacing: 0.8px; text-transform: uppercase; padding: 2px 7px; border-radius: 999px; white-space: nowrap; flex-shrink: 0; margin-top: 2px; }
+.tag.p { background: #7EDCFF1a; color: #7EDCFF; border: 1px solid #7EDCFF33; }
+.tag.a { background: #FFB3471a; color: #FFB347; border: 1px solid #FFB34733; }
+.tag.e { background: #DDA3FC1a; color: #DDA3FC; border: 1px solid #DDA3FC33; }
+.tag.on-light.p { background: #0FBEFF1a; color: #004466; border: 1px solid #0FBEFF44; }
+.tag.on-light.a { background: #cc88001a; color: #553300; border: 1px solid #cc880044; }
+.tag.on-light.e { background: #8800881a; color: #440044; border: 1px solid #88008844; }
+.tag.on-purple.p { background: #ffffff15; color: #e0f4ff; border: 1px solid #ffffff25; }
+.tag.on-purple.a { background: #FFB3471a; color: #ffe0a0; border: 1px solid #FFB34744; }
+.tag.on-purple.e { background: #ffffff12; color: #f0d0ff; border: 1px solid #ffffff20; }
+.tag.on-green.p { background: #00440022; color: #002200; border: 1px solid #00660033; }
+.tag.on-green.a { background: #55330066; color: #221100; border: 1px solid #88440033; }
+.tag.on-green.e { background: #33003366; color: #220011; border: 1px solid #66003333; }
+
+.sys-card { border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; }
+.sys-main { padding: 16px 18px 12px; display: flex; flex-direction: column; gap: 9px; }
+.sys-tag { font-size: 8px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; }
+.sys-card h3 { font-size: 16px; font-weight: 900; line-height: 1.1; }
+.sys-items { display: flex; flex-direction: column; gap: 5px; }
+.sys-item { font-size: 11px; font-weight: 600; padding: 6px 9px; border-radius: 7px; line-height: 1.35; }
+.sys-item strong { display: block; font-size: 8px; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 1px; opacity: 0.55; }
+.sys-do { padding: 9px 18px 11px; display: flex; flex-direction: column; gap: 6px; }
+
+.sys-gamif .sys-main { background: #fff8ee; }
+.sys-gamif .sys-tag { color: #aa6600; }
+.sys-gamif h3 { color: #3d2000; }
+.sys-gamif .sys-item { background: #fff; border: 1px solid #ffd07744; color: #4a2800; }
+.sys-gamif .sys-do { background: #faecd0; }
+.sys-gamif .sys-do .do-row p { color: #4a2800; }
+.duolingo-ref { font-size: 9px; font-weight: 800; color: #4a7a00; background: #4a7a0015; border: 1px solid #4a7a0033; padding: 4px 10px; border-radius: 6px; display: inline-block; }
+
+.sys-comm .sys-main { background: #f0f0f8; }
+.sys-comm .sys-tag { color: #666; }
+.sys-comm h3 { color: #111; }
+.sys-comm .sys-item { background: #fff; border: 1px solid #e0e0ee; color: #333; }
+.sys-comm .sys-do { background: #e4e4f0; }
+.sys-comm .sys-do .do-row p { color: #333; }
+.cta-green { font-size: 10px; font-weight: 800; color: #1a6600; background: #28D10215; border: 1.5px solid #28D10233; padding: 6px 10px; border-radius: 7px; text-align: center; }
+
+.sys-notif .sys-main { background: #0d1822; }
+.sys-notif .sys-tag { color: #7EDCFF66; }
+.sys-notif h3 { color: #fff; }
+.sys-notif .sys-item { background: #ffffff08; border: 1px solid #ffffff10; color: #7a9aaa; }
+.sys-notif .sys-do { background: #07101a; }
+.sys-notif .sys-do .do-row p { color: #556677; }
+
+/* ── SUPABASE ── */
+.supa-row { background: #071410; border-radius: 15px; padding: 16px 20px; border: 1px solid #3ECF8E22; display: flex; gap: 14px; align-items: stretch; }
+.supa-hd { display: flex; flex-direction: column; gap: 5px; min-width: 170px; justify-content: center; border-right: 1px solid #3ECF8E15; padding-right: 14px; }
+.supa-badge { font-size: 9px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: #3ECF8E; background: #3ECF8E15; border: 1px solid #3ECF8E2a; padding: 3px 11px; border-radius: 999px; width: fit-content; }
+.supa-title { font-size: 13px; font-weight: 800; color: #fff; }
+.supa-sub { font-size: 10px; font-weight: 600; color: #3a6040; line-height: 1.4; }
+.supa-tables { display: flex; gap: 9px; flex: 1; }
+.db-t { background: #0b2018; border: 1px solid #3ECF8E18; border-radius: 9px; padding: 9px 11px; flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.db-name { font-size: 10px; font-weight: 900; color: #3ECF8E; font-family: monospace; }
+.db-f { font-size: 9px; font-weight: 600; color: #3a5a40; line-height: 1.3; }
+.supa-do { min-width: 190px; border-left: 1px solid #3ECF8E15; padding-left: 14px; display: flex; flex-direction: column; gap: 6px; justify-content: center; }
+.supa-do-lbl { font-size: 8px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: #3ECF8E44; }
+
+/* ── MIDNIGHT ── */
+.midnight-bar { background: #090909; border-radius: 13px; padding: 14px 22px; display: flex; align-items: center; gap: 14px; }
+.midnight-badge { font-size: 8px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: #7EDCFF; background: #7EDCFF12; border: 1px solid #7EDCFF22; padding: 4px 12px; border-radius: 999px; white-space: nowrap; }
+.midnight-desc { font-size: 11px; font-weight: 600; color: #334; }
+.midnight-steps { display: flex; gap: 7px; margin-left: auto; flex-wrap: wrap; justify-content: flex-end; }
+.m-step { background: #161616; border: 1px solid #252525; color: #667; font-size: 9px; font-weight: 700; padding: 4px 11px; border-radius: 999px; white-space: nowrap; }
+
+/* ── FOOTER ── */
+.footer { background: #f0f1f4; border-top: 1px solid #e0e0e4; padding: 13px 64px; display: flex; align-items: center; justify-content: space-between; }
+.footer p { font-size: 10px; color: #999; font-weight: 600; }
+.footer .brand { font-size: 13px; font-weight: 900; color: #0FBEFF; }
+
+.slot-badge { display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; border-radius: 50%; background: #FFA500; color: #fff; font-size: 8px; font-weight: 900; flex-shrink: 0; margin-right: 3px; vertical-align: middle; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ── HEADER ── -->
+<div class="header">
+  <div>
+    <h1>Petch — Digital Omotenashi System Map</h1>
+    <p>From research to framework to product: how anticipatory, personalised, empathetic AI transforms passive health data into a proactive educational companion — validated by 42 user survey responses</p>
+  </div>
+  <div class="header-pills">
+    <div class="pill">Graduation Dissertation 2026</div>
+    <div class="pill">n=42 Survey Respondents (18–35yo)</div>
+    <div class="pill">Chat-first AI Health Companion</div>
+  </div>
+</div>
+
+<!-- ── EVOLUTION STRIP ── -->
+<div class="evolution-strip">
+  <div class="evo-step passive">
+    <div class="evo-node">
+      <div class="evo-label">Stage 1 — Status Quo</div>
+      <div class="evo-title">Passive Health Apps</div>
+      <div class="evo-sub" style="color:#445">Apple Health, dashboards — show data, wait to be read. No reflection, no education, no action loop.</div>
+    </div>
+  </div>
+  <div class="evo-arrow">→</div>
+  <div class="evo-step chatbot">
+    <div class="evo-node">
+      <div class="evo-label">Stage 2 — Partial Solution</div>
+      <div class="evo-title">Standard Chatbot</div>
+      <div class="evo-sub" style="color:#556677">Reactive Q&A. Answers when asked but does not initiate, personalise, or sustain a behaviour loop.</div>
+    </div>
+  </div>
+  <div class="evo-arrow">→</div>
+  <div class="evo-divider"></div>
+  <div class="evo-step petch" style="flex:2">
+    <div class="evo-node">
+      <div class="evo-label" style="color:#0FBEFF">Stage 3 — Petch</div>
+      <div class="evo-title" style="font-size:16px">Proactive Educational Companion — Digital Omotenashi Applied</div>
+      <div class="evo-sub" style="color:#7a9aaa">Bridges complex medical data and actionable health literacy through a structured Knowing → Learning → Doing loop. Anticipates, personalises, and empathises — before the user asks.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── DO PILLAR LEGEND ── -->
+<div class="do-legend">
+  <div class="do-legend-left">
+    <div class="do-legend-label">Digital Omotenashi</div>
+    <div class="do-legend-title">Three Pillars</div>
+    <div class="do-legend-sub">Japanese hospitality principles, operationalised into AI</div>
+  </div>
+  <div class="leg-divider"></div>
+  <div class="pillar-def">
+    <div class="pil-icon p">P</div>
+    <div>
+      <h4 class="p">Personalised (AIGD)</h4>
+      <p>Content is dynamically generated from this specific user's profile, behavioural patterns, and daily inputs. No two sessions are alike. "Know the user first, guide them better."</p>
+    </div>
+  </div>
+  <div class="leg-divider"></div>
+  <div class="pillar-def">
+    <div class="pil-icon a">A</div>
+    <div>
+      <h4 class="a">Anticipatory</h4>
+      <p>Petch does not wait for the user to ask. It proactively prompts reflection, surfaces unrecognised needs, and identifies symptoms the user may not connect to a broader condition.</p>
+    </div>
+  </div>
+  <div class="leg-divider"></div>
+  <div class="pillar-def">
+    <div class="pil-icon e">E</div>
+    <div>
+      <h4 class="e">Empathetic</h4>
+      <p>Human-centred, supportive language throughout. The Pet Companion reacts to engagement, not health scores — the user feels understood, never judged, never overwhelmed.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── BODY ── -->
+<div class="body">
+
+  <!-- ── RESEARCH BANNER (6 cards) ── -->
+  <div class="research-banner">
+
+    <div class="r-card amber">
+      <div class="r-source amber"><div class="r-source-badge amber">Interview</div>Dr. Greg — GP</div>
+      <div class="r-stat">Indestructibility Gap</div>
+      <div class="r-label">Young adults procrastinate on health because they don't feel immediate consequences</div>
+      <div class="r-quote">"Young adults feel indestructible — they procrastinate on health because they don't feel consequences yet."</div>
+      <div class="r-response"><strong>Petch's response → Externalise consequences via gamification</strong>Streaks, XP, and coin rewards create short-term reward loops that close the knowing-doing gap — making preventive health immediately motivating.</div>
+    </div>
+
+    <div class="r-card rose">
+      <div class="r-source rose"><div class="r-source-badge rose">Survey Data</div>n=42 Respondents</div>
+      <div class="r-stat">38%</div>
+      <div class="r-label">Procrastination/Laziness as barrier</div>
+      <div class="r-quote">"Staying consistent with lifestyle changes" + "Lazy, I'm lazy to read stuff too long and complicated"</div>
+      <div class="r-response"><strong>Petch's response → Micro-learning + gamified consistency</strong>Streaks + Daily Quests prevent procrastination. Max 3 missions + 5-10min content respects time constraints.</div>
+    </div>
+
+    <div class="r-card slate">
+      <div class="r-source slate"><div class="r-source-badge slate">Interviews</div>Claire + Joshua — Users</div>
+      <div class="r-stat">Jargon Barrier</div>
+      <div class="r-label">Medical terminology makes health information inaccessible and intimidating</div>
+      <div class="r-quote">"Medical jargon makes health information feel inaccessible and intimidating — I switch off."</div>
+      <div class="r-response"><strong>Petch's response → Simple language throughout</strong>All Claude prompts enforce plain English. Expert-reviewed foundations + simplified delivery. No jargon in chat or Community articles.</div>
+    </div>
+
+    <div class="r-card teal">
+      <div class="r-source teal"><div class="r-source-badge teal">Survey Data</div>#1 Feature Request</div>
+      <div class="r-stat">29/42</div>
+      <div class="r-label">"Guidance for next steps you can apply immediately"</div>
+      <div class="r-quote">"If I had a resource that would breakdown everything I need to know as life gets busy" + "Straight forward to understand and tailored to me"</div>
+      <div class="r-response"><strong>Petch's response → Mission System = Immediate Action</strong>Every session ends with a user-chosen commitment (Doing phase) that becomes Mission Slot 1 — personalised, actionable, immediate.</div>
+    </div>
+
+    <div class="r-card green">
+      <div class="r-source green"><div class="r-source-badge green">Survey Data</div>Gamification Preference</div>
+      <div class="r-stat">86%</div>
+      <div class="r-label">Daily Streaks + Rewards valued as motivation</div>
+      <div class="r-quote">"Similar to how Apple Health has the 3 different rings where your goal is to complete the rings — something like that will be fun" + "Small missions that are achievable"</div>
+      <div class="r-response"><strong>Petch's response → Duolingo-inspired streaks + micro-rewards</strong>Daily check-in streaks, XP/badges per mission, coins redeemable for vouchers (Subway, Boost) + pet cosmetics. Makes health learning "addictive" not "boring".</div>
+    </div>
+
+    <div class="r-card indigo">
+      <div class="r-source indigo"><div class="r-source-badge indigo">Survey Data</div>Tone Preference</div>
+      <div class="r-stat">64%</div>
+      <div class="r-label">Empathetic framing over fear-based warnings</div>
+      <div class="r-quote">"Instead of 'your current daily habits today could damage your health tomorrow' it could be 'We're a little off track today! Let's take a look...'" + "Positive messages" over "scaremongering"</div>
+      <div class="r-response"><strong>Petch's response → Pet-voiced, supportive tone</strong>System prompt codes empathy as core instruction. Pet celebrates progress, never nags. All notifications framed as encouragement, not threats.</div>
+    </div>
+
+  </div>
+
+  <!-- ── SURVEY INSIGHTS GRID ── -->
+  <div class="insights-grid">
+    <div class="insight-col">
+      <h3><span class="insight-col-label label barriers">Barriers</span> Top 5</h3>
+      <div class="insight-items">
+        <div class="insight-item">
+          <div class="item-stat">38% (16/42)</div>
+          Procrastination / Laziness — "can't stay consistent"
+        </div>
+        <div class="insight-item">
+          <div class="item-stat">31% (13/42)</div>
+          Jargon confusion — "too long, complex, intimidating"
+        </div>
+        <div class="insight-item">
+          <div class="item-stat">24% (10/42)</div>
+          Lack of motivation — "don't see immediate benefit"
+        </div>
+        <div class="insight-item">
+          <div class="item-stat">19% (8/42)</div>
+          Privacy concerns — "how is my health data used?"
+        </div>
+        <div class="insight-item">
+          <div class="item-stat">17% (7/42)</div>
+          Consistency "overwhelm" — "too many components, too many apps"
+        </div>
+      </div>
+    </div>
+
+    <div class="insight-col">
+      <h3><span class="insight-col-label label features">Features</span> Top 6</h3>
+      <div class="insight-items">
+        <div class="insight-item">
+          <div class="item-stat">69% (29/42)</div>
+          Immediate guidance for next steps (Doing)
+        </div>
+        <div class="insight-item">
+          <div class="item-stat">86% (36/42)</div>
+          Daily Streaks + Personalised Goals (Gamification)
+        </div>
+        <div class="insight-item">
+          <div class="item-stat">79% (33/42)</div>
+          Rewards + Coin redemption for vouchers
+        </div>
+        <div class="insight-item">
+          <div class="item-stat">62% (26/42)</div>
+          Micro-learning (5-10min videos, bite-sized facts)
+        </div>
+        <div class="insight-item">
+          <div class="item-stat">48% (20/42)</div>
+          Community features (friend accountability, peer support)
+        </div>
+        <div class="insight-item">
+          <div class="item-stat">45% (19/42)</div>
+          Pacing / adaptive difficulty (learn at my speed)
+        </div>
+      </div>
+    </div>
+
+    <div class="insight-col">
+      <h3><span class="insight-col-label label tone">Tone</span> Validated</h3>
+      <div class="insight-items">
+        <div class="insight-item">
+          <div class="item-stat">64% (27/42)</div>
+          Empathetic over fear-based (reject "scare tactics")
+        </div>
+        <div class="insight-item">
+          <div class="item-stat">52% (22/42)</div>
+          Supportive not bossy — "We're off track, let's fix it" not "You're failing"
+        </div>
+        <div class="insight-item">
+          <div class="item-stat">58% (24/42)</div>
+          Fun + engaging over "feeling like studying for exams"
+        </div>
+        <div class="insight-item">
+          <div class="item-stat">31% (13/42)</div>
+          Pet/character-driven (cute avatar, non-judgmental)
+        </div>
+        <div class="insight-item">
+          <div class="item-stat">43% (18/42)</div>
+          Visual + interactive over text-heavy
+        </div>
+        <div class="insight-item">
+          <div class="item-stat">100% (42/42)</div>
+          "Explain how you use my data" = primary trust driver
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DO FRAME ── -->
+  <div class="do-frame">
+
+    <div class="do-frame-header">
+      <div class="do-badge">Digital Omotenashi Framework</div>
+      <div>
+        <div class="do-frame-title">Everything below is an expression of Digital Omotenashi — Claude is the engine, Supabase is the memory, the KLD loop is the mechanism</div>
+        <div class="do-frame-sub">Research findings above and survey insights to the left directly validate each design decision. The P / A / E tags show which pillar each feature embodies.</div>
+      </div>
+    </div>
+
+    <div class="main-grid">
+
+      <!-- ════ CLAUDE ════ -->
+      <div class="claude-card">
+        <div class="claude-main">
+          <div class="claude-tag">AI Brain — Operationalises DO</div>
+          <div class="claude-title">Claude API</div>
+          <div class="claude-model">claude-sonnet-4-6 / claude-opus-4-7</div>
+          <div class="c-steps">
+            <div class="c-step"><strong>1 · Context load</strong>Profile · goals · 7 prior ai_summaries · today's full chat history · active missions</div>
+            <div class="c-step"><strong>2 · System prompt</strong>Encodes all three DO pillars as behavioural instructions for tone, depth, and timing</div>
+            <div class="c-step"><strong>3 · Knowing</strong>Guides reflection — open questions, never diagnoses, reads mood + topic selection</div>
+            <div class="c-step"><strong>4 · Learning</strong>Generates unique questions + expert-reviewed insights tuned to this user's patterns (AIGD)</div>
+            <div class="c-step"><strong>5 · Doing</strong>Closes check-in, writes Mission Slot 1, proactively fills Slots 2 + 3 from weak areas</div>
+            <div class="c-step"><strong>6 · Output</strong>Tool calls write to Supabase: missions assigned, check-in closed, ai_summary distilled</div>
+          </div>
+        </div>
+        <div class="claude-do">
+          <div class="claude-do-lbl">How Claude expresses DO</div>
+          <div class="do-note"><div class="tag p">P</div><p>7 summaries + full history → every session reflects this user's unique trajectory, not a template. Addresses survey's jargon barrier via AIGD personalisation.</p></div>
+          <div class="do-note"><div class="tag a">A</div><p>Proactively surfaces insights, article nudges, and missions — the user never has to ask. Externalises consequences for the procrastination barrier.</p></div>
+          <div class="do-note"><div class="tag e">E</div><p>System prompt enforces companion register — Petch asks, never tells; empathy coded at the model level. Survey validated: 64% prefer empathetic tone.</p></div>
+        </div>
+      </div>
+
+      <!-- ════ KLD LOOP ════ -->
+      <div class="kld-col">
+
+        <!-- KNOWING -->
+        <div class="phase-card phase-knowing">
+          <div class="phase-main">
+            <div class="phase-tag">Phase 1 — Daily Entry Point · vs. Apple Health (passive)</div>
+            <h2>Knowing</h2>
+            <div class="phase-sub">Self-Awareness + Active Reflection</div>
+            <div class="phase-points">
+              <div class="phase-point"><div class="pp-dot"></div>Mandatory daily check-in — unlocks the rest of the app</div>
+              <div class="phase-point"><div class="pp-dot"></div>User shares mood score + free-text reflection in chat</div>
+              <div class="phase-point"><div class="pp-dot"></div>Topic selected: Sleep · Nutrition · Exercise</div>
+              <div class="phase-point"><div class="pp-dot"></div>Claude reads today's input alongside 7 prior ai_summaries from Supabase</div>
+            </div>
+          </div>
+          <div class="phase-do">
+            <div class="do-row"><div class="tag on-light p">P</div><p>Check-in prompts adapt to the user's profile + recent history — returning users get contextualised openers, not a blank slate</p></div>
+            <div class="do-row"><div class="tag on-light a">A</div><p>Notification sent before the user thinks to open the app — Petch initiates the session. Addresses Dr. Greg's "indestructibility" gap by externalising the daily prompt.</p></div>
+            <div class="do-row"><div class="tag on-light e">E</div><p>Framed as reflection, not data entry — "how are you feeling?" not "log your health". Pet companion reacts to engagement, not scores. Supports 64% survey preference for empathy.</p></div>
+          </div>
+        </div>
+
+        <!-- CONNECTOR K→L -->
+        <div class="phase-connector">
+          <div class="conn-line-wrap"><div class="conn-line"></div><div class="conn-arrow">↓</div></div>
+          <div class="conn-annotation"><p>Knowing answers become the <strong style="color:#7EDCFF88">personalisation seed</strong> — Claude shapes every Learning message around what the user just shared. No generic path from this point forward. Directly addresses 31% jargon barrier via AIGD-generated, simplified explanations.</p></div>
+        </div>
+
+        <!-- LEARNING -->
+        <div class="phase-card phase-learning">
+          <div class="phase-main">
+            <div class="phase-tag">Phase 2 — Education · Expert-reviewed + AIGD · Simplifies jargon</div>
+            <h2>Learning</h2>
+            <div class="phase-sub">Personalised Knowledge · Simple Language · Micro-learning (62% survey preference)</div>
+            <div class="phase-points">
+              <div class="phase-point"><div class="pp-dot"></div>Claude delivers questions tailored to this user's patterns + today's topic (AIGD)</div>
+              <div class="phase-point"><div class="pp-dot"></div>AI-generated health insights — expert-reviewed foundation, jargon-free delivery</div>
+              <div class="phase-point"><div class="pp-dot"></div>Doctor-authored Community articles surfaced as relevant reading at the right moment</div>
+              <div class="phase-point"><div class="pp-dot"></div>Micro-learning format (5-10min, bite-sized) addresses survey preferences</div>
+            </div>
+          </div>
+          <div class="phase-do">
+            <div class="do-row"><div class="tag on-purple p">P</div><p>No two users get the same Learning session — AIGD generates content unique to this user's data, history, and today's focus. Eliminates jargon barrier via plain English.</p></div>
+            <div class="do-row"><div class="tag on-purple a">A</div><p>Claude surfaces the Community article before the user thinks to browse — placed in conversation at the exact relevant moment. Proactively identifies knowledge gaps.</p></div>
+            <div class="do-row"><div class="tag on-purple e">E</div><p>Supports 43% survey preference for visual + interactive content. Petch asks follow-up questions rather than lecturing. Tone validated: empathetic, not bossy.</p></div>
+          </div>
+        </div>
+
+        <!-- CONNECTOR L→D -->
+        <div class="phase-connector">
+          <div class="conn-line-wrap"><div class="conn-line"></div><div class="conn-arrow">↓</div></div>
+          <div class="conn-annotation"><p>Addresses the <strong style="color:#FFB34788">knowing-doing gap</strong> (Dr. Greg + 38% procrastination barrier) — Claude guides the user toward a concrete commitment before session energy fades, closing the loop between insight and action. Gamification externalises the motivation.</p></div>
+        </div>
+
+        <!-- DOING -->
+        <div class="phase-card phase-doing">
+          <div class="phase-main">
+            <div class="phase-tag">Phase 3 — Action · Closes knowing-doing gap · Survey's #1 feature (69%)</div>
+            <h2>Doing</h2>
+            <div class="phase-sub">Committed Action · Immediate, Personalised Next Steps</div>
+            <div class="phase-points">
+              <div class="phase-point"><div class="pp-dot"></div>User commits to 1 concrete action before session closes</div>
+              <div class="phase-point"><div class="pp-dot"></div>Committed action auto-fills Mission Slot 1 in the Actions tab</div>
+              <div class="phase-point"><div class="pp-dot"></div>Petch proactively suggests Slots 2 + 3, targeting user's weakest areas</div>
+              <div class="phase-point"><div class="pp-dot"></div>Completing missions earns coins → closes the gamification loop (86% survey preference)</div>
+            </div>
+          </div>
+          <div class="phase-do">
+            <div class="do-row"><div class="tag on-green p">P</div><p>Slot 1 = user's own words. Slots 2 + 3 target their specific weak patterns from history — directly validates survey's #1 feature: "immediate, applicable guidance". Personalisation closes the knowing-doing gap.</p></div>
+            <div class="do-row"><div class="tag on-green a">A</div><p>Actions tab pre-populated before the user opens it — Petch assigns without being asked, at session close. Externalises the procrastination barrier by removing friction.</p></div>
+            <div class="do-row"><div class="tag on-green e">E</div><p>Max 3 missions prevents overwhelm (addresses 17% consistency barrier). Framed as commitment not instruction. Skipping allowed without penalty — the user chose it. Pet celebrates wins, never punishes.</p></div>
+          </div>
+        </div>
+
+        <div style="padding:8px 4px 0;"><div style="font-size:9px;font-weight:800;color:#ffffff18;letter-spacing:0.4px;">↺ &nbsp;ai_summary written at midnight · tomorrow's Knowing phase builds on today · loop restarts indefinitely, each cycle more personalised than the last</div></div>
+
+      </div>
+
+      <!-- ════ RIGHT: ENGAGEMENT ════ -->
+      <div class="right-col">
+
+        <!-- GAMIFICATION -->
+        <div class="sys-card sys-gamif">
+          <div class="sys-main">
+            <div class="sys-tag">Combats procrastination (38%) + "indestructibility" (Dr. Greg)</div>
+            <h3>Gamification <div class="duolingo-ref" style="display:inline-block;margin-left:6px">↗ Duolingo case study</div></h3>
+            <div class="sys-items">
+              <div class="sys-item"><strong>Daily Streaks + XP</strong>Survey: 86% prefer streaks (like Apple Health rings). Borrowed from Duolingo's model to make health learning "addictive" and combat "boring" traditional health apps</div>
+              <div class="sys-item"><strong>Coins + Rewards</strong>Complete missions → earn coins → spend on real-life vouchers (Subway, Boost, 79% survey preference) + pet cosmetics → re-engages Home tab</div>
+              <div class="sys-item"><strong>Streak alerts (Anticipatory)</strong>Sent the evening before a streak breaks — user prevents failure rather than discovering it lost</div>
+            </div>
+          </div>
+          <div class="sys-do">
+            <div class="do-row"><div class="tag p">P</div><p>Rewards tied to personal missions, not generic tasks — coin events logged per user. Addresses 24% motivation barrier via visible, immediate rewards.</p></div>
+            <div class="do-row"><div class="tag a">A</div><p>Streak warning sent proactively — externalises Dr. Greg's insight: young adults need external consequences they don't yet feel internally.</p></div>
+            <div class="do-row"><div class="tag e">E</div><p>Pet celebrates with user — emotional, not transactional. Progress celebrated, gaps not penalised. 64% survey: empathetic tone valued.</p></div>
+          </div>
+        </div>
+
+        <!-- COMMUNITY -->
+        <div class="sys-card sys-comm">
+          <div class="sys-main">
+            <div class="sys-tag">Social accountability + expert content · 48% survey value</div>
+            <h3>Community Tab</h3>
+            <div class="sys-items">
+              <div class="sys-item"><strong>→ Connects to Learning</strong>Doctor-authored articles surface in Learning at the contextually right moment — expert-reviewed, simplified (addresses 31% jargon barrier)</div>
+              <div class="sys-item"><strong>Friend Groups</strong>Private circles; friends see each other's learning progress + achievements — mutual encouragement increases retention. Peer accountability addresses 24% motivation barrier.</div>
+              <div class="sys-item"><strong>Short-form Video</strong>TikTok-style; credible curated health content. Supports 43% survey preference for visual over text-heavy content</div>
+            </div>
+            <div class="cta-green">↓ "Let's Do This Together" → community content directly creates a shared Mission in Doing — social support becomes individual accountability</div>
+          </div>
+          <div class="sys-do">
+            <div class="do-row"><div class="tag p">P</div><p>Claude selects which article to surface — contextual match to today's session topic and this user's identified gaps (AIGD).</p></div>
+            <div class="do-row"><div class="tag a">A</div><p>"Let's Do This Together" CTA placed at the right conversational moment — Petch doesn't wait for browsing. Peer motivation is anticipatory.</p></div>
+            <div class="do-row"><div class="tag e">E</div><p>Peer motivation not clinical instruction. Friend visibility builds accountability without shame or competition. Empathetic framing validated by 64% survey.</p></div>
+          </div>
+        </div>
+
+        <!-- NOTIFICATIONS -->
+        <div class="sys-card sys-notif">
+          <div class="sys-main">
+            <div class="sys-tag">Anticipatory Touch Points · Reduce procrastination</div>
+            <h3>Notifications</h3>
+            <div class="sys-items">
+              <div class="sys-item"><strong>Daily session nudge</strong>Sent before the user decides to open the app — pet-voiced, warm. Petch initiates, not the user. Externalises procrastination barrier.</div>
+              <div class="sys-item"><strong>Streak alert</strong>Evening before a streak breaks — user prevents failure, never discovers it lost. Motivation support against 38% procrastination.</div>
+              <div class="sys-item"><strong>Mission check-in</strong>References only the specific action the user committed to — contextual, not a broadcast. Personalised to this user (AIGD).</div>
+              <div class="sys-item"><strong>Surprise nudges</strong>Time-of-day health tips (e.g. wind-down at 9pm for sleep) — anticipatory, not scheduled blasts. Empathetic tone throughout.</div>
+            </div>
+          </div>
+          <div class="sys-do">
+            <div class="do-row"><div class="tag p">P</div><p>Every notification references the user's specific mission, streak, or session topic — never generic. Addresses jargon barrier via plain, warm language.</p></div>
+            <div class="do-row"><div class="tag a">A</div><p>Sent before the need arises — the defining expression of Anticipatory care in the DO framework. Reduces procrastination via nudges, not nagging.</p></div>
+            <div class="do-row"><div class="tag e">E</div><p>All voiced through the pet — warm and encouraging, never alarming or bossy. 52% survey: "supportive not bossy" tone. Petch celebrates, never nags.</p></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- SUPABASE -->
+    <div class="supa-row">
+      <div class="supa-hd">
+        <div class="supa-badge">Supabase</div>
+        <div class="supa-title">Persistent Memory Layer</div>
+        <div class="supa-sub">Without this, Claude cannot know the user across time. Memory is what makes Personalised and Anticipatory care technically possible. Enables 100% of survey respondents' privacy requirement: "explain how you use my data".</div>
+      </div>
+      <div class="supa-tables">
+        <div class="db-t"><div class="db-name">users</div><div class="db-f">profile · pet · goals</div><div class="db-f">coins · streak · health baseline</div></div>
+        <div class="db-t"><div class="db-name">check_ins</div><div class="db-f">mood · topic · committed action</div><div class="db-f">ai_summary — distilled by Claude</div></div>
+        <div class="db-t"><div class="db-name">chat_messages</div><div class="db-f">every message · role · timestamp</div><div class="db-f">indexed by user + session_date</div></div>
+        <div class="db-t"><div class="db-name">user_missions</div><div class="db-f">slots 1–3 · source · status</div><div class="db-f">pending / completed / skipped</div></div>
+        <div class="db-t"><div class="db-name">rewards</div><div class="db-f">full coin ledger · reason per event</div><div class="db-f">voucher + cosmetic history</div></div>
+      </div>
+      <div class="supa-do">
+        <div class="supa-do-lbl">Enables</div>
+        <div class="do-row"><div class="tag p">P</div><p style="font-size:10px;font-weight:600;color:#3a5a40;line-height:1.4;">7 prior ai_summaries give Claude long-term user context without token cost. AIGD-personalised each session. Jargon barrier addressed via adaptive content.</p></div>
+        <div class="do-row"><div class="tag a">A</div><p style="font-size:10px;font-weight:600;color:#3a5a40;line-height:1.4;">Pattern detection across sessions lets Petch surface needs before they're articulated. Streak tracking enables proactive alerts. Procrastination barrier addressed via externalised consequence tracking.</p></div>
+        <div class="do-row"><div class="tag e">E</div><p style="font-size:10px;font-weight:600;color:#3a5a40;line-height:1.4;">Continuity of care — Petch remembers, so the user never has to repeat themselves. Builds trust via transparency: user can see exactly how their data is used (100% survey requirement).</p></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MIDNIGHT -->
+  <div class="midnight-bar">
+    <div class="midnight-badge">Midnight Reset</div>
+    <div class="midnight-desc">The daily boundary — enforces healthy limits on app dependence and creates structured health logs over time. Closes today's loop, opens tomorrow's with fresh knowledge of this user's patterns.</div>
+    <div class="midnight-steps">
+      <div class="m-step">Chat archived as health log</div>
+      <div class="m-step">Claude distils ai_summary</div>
+      <div class="m-step">Streak + coins updated</div>
+      <div class="m-step">New session on next open</div>
+      <div class="m-step" style="color:#7EDCFF66;border-color:#7EDCFF18;">↺ Loop restarts → Knowing</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <p>React 19 · Vite · Tailwind v4 · Supabase Postgres + Auth + RLS</p>
+  <div class="brand">Petch</div>
+  <p>Claude API (claude-sonnet-4-6) · Vercel · petch-health-app.vercel.app · Survey Data: 42 respondents, Jan–Feb 2026</p>
+</div>
+
+</div>
+</body>
+</html>
