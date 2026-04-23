@@ -332,6 +332,7 @@ export default function App() {
           missions={missions}
           onCompleteMission={{ complete: completeMission, fly: triggerCoinFly }}
           onAddMission={handleAddMissionFromCommunity}
+          onAskPetch={() => handleMenuNavigate('home')}
           coinBalanceRef={topBarCoinRef}
         />
       )}

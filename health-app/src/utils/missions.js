@@ -1,6 +1,40 @@
 // Missions ledger (localStorage) — Slot 1 driven by check-in commit,
 // Slots 2 & 3 are Petch-suggested.
 const KEY = 'petch_missions'
+const WEEKLY_KEY = 'petch_weekly_goal'
+export const WEEKLY_TARGET = 10
+
+function weekStartMs(d = new Date()) {
+  const x = new Date(d)
+  x.setHours(0, 0, 0, 0)
+  const day = x.getDay()
+  const diff = day === 0 ? 6 : day - 1
+  x.setDate(x.getDate() - diff)
+  return x.getTime()
+}
+
+export function loadWeekly() {
+  const weekStart = weekStartMs()
+  try {
+    const raw = localStorage.getItem(WEEKLY_KEY)
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (parsed && parsed.weekStart === weekStart) return parsed
+    }
+  } catch {}
+  return { weekStart, count: 0 }
+}
+
+function saveWeekly(state) {
+  localStorage.setItem(WEEKLY_KEY, JSON.stringify(state))
+}
+
+function incrementWeekly() {
+  const w = loadWeekly()
+  w.count += 1
+  saveWeekly(w)
+  return w
+}
 
 export const SUGGESTED_POOL = [
   { type: 'drink_water',    label: 'Drink 8 glasses of water', reward: 5, topic: 'Nutrition' },
@@ -69,6 +103,7 @@ export function completeMission(slotIndex) {
   m.status = 'completed'
   m.completedAt = Date.now()
   save(state)
+  incrementWeekly()
   return state
 }
 

@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from 'react'
+import { useState, useRef, useMemo, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { PHONE } from '../utils/frame.jsx'
 import coinSvg from '../assets/coin.svg'
@@ -6,7 +6,7 @@ import characterIdle from '../assets/animation/character-idle.gif'
 import characterIdleClicked from '../assets/animation/character-idle-clicked.gif'
 import { haptic } from '../utils/haptics'
 import { playMcq } from '../utils/sounds'
-import { SUGGESTED_POOL } from '../utils/missions'
+import { SUGGESTED_POOL, loadWeekly, WEEKLY_TARGET } from '../utils/missions'
 
 const f = { fontFamily: "'DIN Next Rounded', sans-serif" }
 
@@ -29,6 +29,36 @@ function ClockIcon() {
       <path d="M12 6v6l4 2" stroke="#72E0FF" strokeWidth="2" strokeLinecap="round"/>
     </svg>
   )
+}
+
+function ChatIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M4 5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-6l-4 4v-4H6a2 2 0 0 1-2-2V5z"
+        stroke="white"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function hoursLeftUntilMidnight() {
+  const now = new Date()
+  const midnight = new Date(now)
+  midnight.setHours(24, 0, 0, 0)
+  return Math.max(0, Math.ceil((midnight - now) / (1000 * 60 * 60)))
+}
+
+function readUserName() {
+  try {
+    const u = JSON.parse(localStorage.getItem('petch_user') || 'null')
+    return u?.name || 'friend'
+  } catch {
+    return 'friend'
+  }
 }
 
 function SourceBadge({ source }) {
@@ -199,10 +229,42 @@ function NewMissionCard({ suggestion, onAdd, canAdd }) {
   )
 }
 
+function WeeklyGoalBar({ pct }) {
+  return (
+    <div className="flex items-center gap-[10px] w-full">
+      <div
+        className="flex-1 relative rounded-[10px] overflow-hidden"
+        style={{ height: 14, background: 'rgba(255,255,255,0.22)' }}
+      >
+        <motion.div
+          className="absolute inset-y-0 left-0 rounded-[10px]"
+          initial={{ width: 0 }}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.9, ease: 'easeOut' }}
+          style={{
+            background: 'linear-gradient(90deg, #FFE066 0%, #FFB800 50%, #FF6A00 100%)',
+            boxShadow: '0 0 4px rgba(255, 184, 0, 0.45)',
+          }}
+        />
+        <div
+          className="absolute inset-0 flex items-center justify-center pointer-events-none"
+          style={{ ...f, fontSize: 11, fontWeight: 700, color: 'white', letterSpacing: 0.4 }}
+        >
+          {Math.round(pct)}%
+        </div>
+      </div>
+      <div className="rounded-full shrink-0 overflow-hidden" style={{ width: 22, height: 22 }}>
+        <img src={coinSvg} alt="coin" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+      </div>
+    </div>
+  )
+}
+
 export default function MissionsScreen({
   menuOpen = false,
   onMenuOpen,
   onMenuClose,
+  onAskPetch,
   coins = 10,
   fadeIn = false,
   missions = [null, null, null],
@@ -212,7 +274,19 @@ export default function MissionsScreen({
 }) {
   const [tab, setTab] = useState('Active')
   const [petClicked, setPetClicked] = useState(false)
+  const [hoursLeft, setHoursLeft] = useState(() => hoursLeftUntilMidnight())
+  const [weekly, setWeekly] = useState(() => loadWeekly())
+  const userName = useMemo(() => readUserName(), [])
   const topBarCoinRef = useRef(null)
+
+  useEffect(() => {
+    const id = setInterval(() => setHoursLeft(hoursLeftUntilMidnight()), 60_000)
+    return () => clearInterval(id)
+  }, [])
+
+  useEffect(() => {
+    setWeekly(loadWeekly())
+  }, [missions])
 
   function handlePetTap() {
     haptic('tap')
@@ -231,6 +305,12 @@ export default function MissionsScreen({
     if (onCompleteMission && onCompleteMission.complete) {
       onCompleteMission.complete(slotIndex, reward)
     }
+  }
+
+  function handleAskPetch() {
+    haptic('tap')
+    playMcq()
+    if (onAskPetch) onAskPetch()
   }
 
   const activeSlots = missions
@@ -254,7 +334,7 @@ export default function MissionsScreen({
     Completed: completedSlots.length,
   }
 
-  const activeCount = activeSlots.length
+  const weeklyPct = Math.min(100, (weekly.count / WEEKLY_TARGET) * 100)
 
   return (
     <div
@@ -305,101 +385,101 @@ export default function MissionsScreen({
         </div>
       </div>
 
-      <div className="pt-4">
+      {/* DAILY MISSIONS META ROW */}
+      <div className="shrink-0 pt-4 flex items-center justify-between">
+        <span style={{ ...f, fontWeight: 500, fontSize: 15, color: '#72E0FF', letterSpacing: 0.6 }}>
+          DAILY MISSIONS
+        </span>
+        <div className="flex items-center gap-[5px]">
+          <ClockIcon />
+          <span style={{ ...f, fontWeight: 500, fontSize: 15, color: '#72E0FF', letterSpacing: 0.4 }}>
+            {hoursLeft} {hoursLeft === 1 ? 'HOUR' : 'HOURS'} LEFT
+          </span>
+        </div>
+      </div>
+
+      <p className="shrink-0 pt-[8px]" style={{ ...f, fontWeight: 400, fontSize: 17, color: 'white', letterSpacing: '-0.2px', lineHeight: 1.35 }}>
+        Filter through to view your mission log!
+      </p>
+
+      <div className="shrink-0 pt-[12px]">
         <TabBar active={tab} onChange={setTab} counts={counts} />
       </div>
 
       {/* BODY */}
-      <div className="flex-1 overflow-y-auto py-[16px] flex flex-col gap-[14px] min-h-0">
+      <div className="flex-1 overflow-y-auto py-[14px] flex flex-col gap-[10px] min-h-0">
         {tab === 'Active' && (
           <>
-            <div className="flex items-center justify-between">
-              <span style={{ ...f, fontWeight: 500, fontSize: 15, color: '#72E0FF' }}>
-                TODAY'S MISSIONS
-              </span>
-              <div className="flex items-center gap-[5px]">
-                <ClockIcon />
-                <span style={{ ...f, fontWeight: 500, fontSize: 15, color: '#72E0FF' }}>
-                  {activeCount} ACTIVE
-                </span>
-              </div>
-            </div>
-
-            <p style={{ ...f, fontWeight: 400, fontSize: 17, color: 'white', letterSpacing: '-0.2px', lineHeight: 1.35 }}>
-              Slot 1 fills when you commit in the daily check-in. Tap to mark done — each one earns coins.
-            </p>
-
-            <div className="flex flex-col gap-[10px]">
-              <AnimatePresence mode="popLayout">
-                {missions.map((m, i) => (
-                  m && m.status === 'completed' ? null : (
-                    <motion.div
-                      key={(m && m.id) || `empty-${i}`}
-                      layout
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -8 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <MissionSlot
-                        mission={m}
-                        slotIndex={i}
-                        onComplete={handleComplete}
-                        onCoinFlight={handleCoinFlight}
-                      />
-                    </motion.div>
-                  )
-                ))}
-              </AnimatePresence>
-            </div>
-          </>
-        )}
-
-        {tab === 'New' && (
-          <>
-            <p style={{ ...f, fontWeight: 400, fontSize: 17, color: 'white', letterSpacing: '-0.2px', lineHeight: 1.35 }}>
-              {hasFreeSlot
-                ? 'Petch-suggested missions. Tap + Add to drop one into your mission log.'
-                : 'All 3 slots are full. Complete one first, then add a new mission.'}
-            </p>
-            <div className="flex flex-col gap-[10px]">
-              <AnimatePresence initial={false}>
-                {newSuggestions.map((s) => (
-                  <NewMissionCard
-                    key={s.type}
-                    suggestion={s}
-                    canAdd={hasFreeSlot}
-                    onAdd={(m) => onAddMission && onAddMission(m)}
-                  />
-                ))}
-              </AnimatePresence>
-            </div>
-          </>
-        )}
-
-        {tab === 'Completed' && (
-          <>
-            <p style={{ ...f, fontWeight: 400, fontSize: 17, color: 'white', letterSpacing: '-0.2px', lineHeight: 1.35 }}>
-              {completedSlots.length === 0
-                ? 'Nothing here yet — finish a mission to see it land in this tab.'
-                : 'Nice work — here\'s what you\'ve ticked off today.'}
-            </p>
-            <div className="flex flex-col gap-[10px]">
-              <AnimatePresence initial={false}>
-                {completedSlots.map(({ m, i }) => (
+            {!hasFreeSlot && (
+              <p style={{ ...f, fontWeight: 400, fontSize: 15, color: 'rgba(255,255,255,0.8)', letterSpacing: '-0.2px', lineHeight: 1.35 }}>
+                All 3 slots are full. Complete one first, then add a new mission.
+              </p>
+            )}
+            <AnimatePresence mode="popLayout">
+              {missions.map((m, i) => (
+                m && m.status === 'completed' ? null : (
                   <motion.div
-                    key={m.id}
+                    key={(m && m.id) || `empty-${i}`}
                     layout
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -8 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <MissionSlot mission={m} slotIndex={i} onComplete={() => {}} onCoinFlight={() => {}} />
+                    <MissionSlot
+                      mission={m}
+                      slotIndex={i}
+                      onComplete={handleComplete}
+                      onCoinFlight={handleCoinFlight}
+                    />
                   </motion.div>
-                ))}
-              </AnimatePresence>
-            </div>
+                )
+              ))}
+            </AnimatePresence>
+          </>
+        )}
+
+        {tab === 'New' && (
+          <>
+            {!hasFreeSlot && (
+              <p style={{ ...f, fontWeight: 400, fontSize: 15, color: 'rgba(255,255,255,0.8)', letterSpacing: '-0.2px', lineHeight: 1.35 }}>
+                All 3 slots are full. Complete one first, then add a new mission.
+              </p>
+            )}
+            <AnimatePresence initial={false}>
+              {newSuggestions.map((s) => (
+                <NewMissionCard
+                  key={s.type}
+                  suggestion={s}
+                  canAdd={hasFreeSlot}
+                  onAdd={(m) => onAddMission && onAddMission(m)}
+                />
+              ))}
+            </AnimatePresence>
+          </>
+        )}
+
+        {tab === 'Completed' && (
+          <>
+            {completedSlots.length === 0 && (
+              <p style={{ ...f, fontWeight: 400, fontSize: 15, color: 'rgba(255,255,255,0.8)', letterSpacing: '-0.2px', lineHeight: 1.35 }}>
+                Nothing here yet — finish a mission to see it land in this tab.
+              </p>
+            )}
+            <AnimatePresence initial={false}>
+              {completedSlots.map(({ m, i }) => (
+                <motion.div
+                  key={m.id}
+                  layout
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <MissionSlot mission={m} slotIndex={i} onComplete={() => {}} onCoinFlight={() => {}} />
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </>
         )}
       </div>
@@ -407,19 +487,44 @@ export default function MissionsScreen({
       {/* PET */}
       <div
         className="shrink-0 cursor-pointer active:scale-95 transition-transform duration-100 flex items-end justify-start"
-        style={{ height: 110 }}
+        style={{ height: 125 }}
         onClick={handlePetTap}
       >
         <img
           src={petClicked ? characterIdleClicked : characterIdle}
           alt="Petch companion"
-          style={{ height: 110, objectFit: 'contain', objectPosition: 'bottom left' }}
+          style={{ height: 125, objectFit: 'contain', objectPosition: 'bottom left' }}
         />
       </div>
 
-      <div className="shrink-0" style={{ ...f, fontWeight: 400, fontSize: 16, color: '#72E0FF', letterSpacing: '-0.2px', padding: '6px 0' }}>
-        {activeCount === 0 ? 'All done — see you tomorrow!' : `${activeCount} to go`}
+      {/* WEEKLY GOAL */}
+      <div className="shrink-0 flex flex-col gap-[6px]" style={{ paddingTop: 4 }}>
+        <span style={{ ...f, fontWeight: 500, fontSize: 15, color: 'white', letterSpacing: '-0.2px' }}>
+          Weekly Goal
+        </span>
+        <WeeklyGoalBar pct={weeklyPct} />
+        <span style={{ ...f, fontWeight: 400, fontSize: 14, color: 'rgba(255,255,255,0.65)', letterSpacing: '-0.2px' }}>
+          Are you captain {userName}?!
+        </span>
       </div>
+
+      {/* ASK PETCH CTA */}
+      <motion.button
+        whileTap={{ scale: 0.97 }}
+        onClick={handleAskPetch}
+        className="shrink-0 w-full rounded-[12px] flex items-center gap-[10px]"
+        style={{
+          background: 'rgba(255,255,255,0.18)',
+          padding: '14px 16px',
+          marginTop: 10,
+          border: '1.5px solid rgba(255,255,255,0.22)',
+        }}
+      >
+        <ChatIcon />
+        <span style={{ ...f, fontWeight: 700, fontSize: 15, color: 'white', letterSpacing: 0.6, textTransform: 'uppercase' }}>
+          Ask Petch for a mission
+        </span>
+      </motion.button>
 
     </div>
   )
