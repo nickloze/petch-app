@@ -10,7 +10,7 @@ const f = { fontFamily: "'DIN Next Rounded', sans-serif" }
 
 function HamburgerIcon() {
   return (
-    <svg width="22" height="16" viewBox="0 0 22 16" fill="none" aria-label="Menu">
+    <svg width="19" height="14" viewBox="0 0 22 16" fill="none" aria-label="Menu">
       <rect y="0"   width="22" height="2.5" rx="1.25" fill="white" />
       <rect y="6.5" width="22" height="2.5" rx="1.25" fill="white" />
       <rect y="13"  width="22" height="2.5" rx="1.25" fill="white" />
@@ -115,7 +115,6 @@ function ArticleCard({ article, onLetsDo }) {
         </span>
         <motion.button
           whileTap={{ scale: 0.96 }}
-          onClick={() => { haptic('commit'); onLetsDo(article.mission) }}
           className="rounded-[8px] px-[12px] py-[8px]"
           style={{ background: 'white', color: '#0077A8', ...f, fontSize: 13, fontWeight: 700 }}
         >
@@ -155,8 +154,8 @@ export default function CommunityScreen({ menuOpen = false, onMenuOpen, onMenuCl
       />
 
       {/* HEADER */}
-      <div className="shrink-0 mx-[-16px] mt-[-56px] md:mt-[-64px] bg-[#00BAFF] rounded-b-[20px]" style={{ height: 122 }}>
-        <div style={{ height: 61 }} />
+      <div className="shrink-0 mx-[-16px] mt-[-56px] md:mt-[-64px] bg-[#00BAFF] rounded-b-[20px] chat-header-bar">
+        <div className="chat-status-spacer" />
         <div className="flex items-center justify-between h-[46px] px-[15px]">
           <button onClick={onMenuOpen} className="active:scale-90 transition-transform duration-100 relative shrink-0 flex items-center justify-center" style={{ width: 45, height: 45 }}>
             <div className="absolute inset-0 rounded-full" style={{ background: 'rgba(255,255,255,0.22)' }} />
@@ -198,7 +197,6 @@ export default function CommunityScreen({ menuOpen = false, onMenuOpen, onMenuCl
                 <div className="flex gap-2 mt-3">
                   <motion.button
                     whileTap={{ scale: 0.96 }}
-                    onClick={() => { haptic('commit'); handleLetsDo({ label: 'Check on the uni sleep crew', topic: 'Sleep', reward: 3 }) }}
                     className="rounded-[8px] px-[12px] py-[8px]"
                     style={{ background: 'white', color: '#0077A8', ...f, fontSize: 13, fontWeight: 700 }}
                   >

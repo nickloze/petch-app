@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useLayoutEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { PHONE, SendIcon } from '../utils/frame.jsx'
 import { playMcq, playNext } from '../utils/sounds'
@@ -6,6 +6,7 @@ import { haptic } from '../utils/haptics'
 import coinSvg from '../assets/coin.svg'
 import characterIdle from '../assets/animation/character-idle.gif'
 import TypingBubble from './TypingBubble.jsx'
+import { DEMO_SESSIONS, buildUserContextBlock } from '../utils/demoHistory'
 
 const f = { fontFamily: "'DIN Next Rounded', sans-serif" }
 
@@ -63,7 +64,7 @@ const FALLBACK_BY_PROMPT = {
 
 function HamburgerIcon() {
   return (
-    <svg width="22" height="16" viewBox="0 0 22 16" fill="none" aria-label="Menu">
+    <svg width="19" height="14" viewBox="0 0 22 16" fill="none" aria-label="Menu">
       <rect y="0" width="22" height="2.5" rx="1.25" fill="white" />
       <rect y="6.5" width="22" height="2.5" rx="1.25" fill="white" />
       <rect y="13" width="22" height="2.5" rx="1.25" fill="white" />
@@ -79,14 +80,44 @@ function BackIcon() {
   )
 }
 
-function PetchMessage({ text }) {
+function useTypewriter(text, animate, speed = 10, onDone) {
+  const [displayed, setDisplayed] = useState(animate ? '' : text)
+  useEffect(() => {
+    if (!animate) { setDisplayed(text); onDone?.(); return }
+    setDisplayed('')
+    if (!text) { onDone?.(); return }
+    let idx = 0
+    const id = setInterval(() => {
+      idx++
+      setDisplayed(text.slice(0, idx))
+      if (idx >= text.length) { clearInterval(id); onDone?.() }
+    }, speed)
+    return () => clearInterval(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [text, animate, speed])
+  return displayed
+}
+
+function scrollAncestorToBottom(node) {
+  let el = node?.parentElement
+  while (el) {
+    const overflowY = getComputedStyle(el).overflowY
+    if (overflowY === 'auto' || overflowY === 'scroll') { el.scrollTop = el.scrollHeight; return }
+    el = el.parentElement
+  }
+}
+
+function PetchMessage({ text, animate = false, onDone }) {
+  const displayed = useTypewriter(text, animate, 10, onDone)
+  const ref = useRef(null)
+  useLayoutEffect(() => { scrollAncestorToBottom(ref.current) }, [displayed])
   return (
-    <div className="flex flex-col gap-[6px] pr-[40px]">
+    <div ref={ref} className="flex flex-col gap-[6px] pr-[40px]">
       <p
         className="text-white text-[18px] leading-snug"
-        style={{ ...f, fontWeight: 400 }}
+        style={{ ...f, fontWeight: 400, whiteSpace: 'pre-wrap' }}
       >
-        {text}
+        {displayed}
       </p>
     </div>
   )
@@ -110,15 +141,17 @@ function UserMessage({ text }) {
   )
 }
 
-export default function SessionRecapScreen({ session, onBack, onMenuOpen, coins = 0 }) {
+export default function SessionRecapScreen({ session, onBack, onMenuOpen, coins = 0, userName = 'there' }) {
   const topic = session?.topic ?? 'Sleep'
   const date = session?.date ?? ''
   const prompts = PROMPTS_BY_TOPIC[topic] ?? PROMPTS_BY_TOPIC.Sleep
+  const sessionRecord = DEMO_SESSIONS.find(s => s.date === date && s.topic === topic)
 
   const [messages, setMessages] = useState([
     {
       role: 'petch',
-      text: `Welcome back to your ${topic.toLowerCase()} session from ${date}. What do you want to dig into?`,
+      text: `Welcome back to your ${topic.toLowerCase()} session on ${date}. What would you like to know about this session?`,
+      animate: true,
     },
   ])
   const [isLoading, setIsLoading] = useState(false)
@@ -126,8 +159,11 @@ export default function SessionRecapScreen({ session, onBack, onMenuOpen, coins 
   const [inputText, setInputText] = useState('')
   const scrollRef = useRef(null)
 
+  const [typingDoneFor, setTypingDoneFor] = useState(-1)
   const lastMessage = messages[messages.length - 1]
-  const showPrompts = !isLoading && lastMessage?.role === 'petch'
+  const lastIdx = messages.length - 1
+  const lastTyped = !lastMessage?.animate || typingDoneFor >= lastIdx
+  const showPrompts = !isLoading && lastMessage?.role === 'petch' && lastTyped
   const availableTopicPrompts = prompts.filter((p) => !askedPrompts.includes(p))
   const availableFollowups = FOLLOWUP_PROMPTS.filter((p) => !askedPrompts.includes(p))
   const currentPrompts = [...availableTopicPrompts, ...availableFollowups].slice(0, 3)
@@ -149,11 +185,19 @@ export default function SessionRecapScreen({ session, onBack, onMenuOpen, coins 
 
     let reply = ''
     try {
-      const seed = `The user is reviewing their past ${topic} session from ${date}. They ask: "${trimmed}". Reply warmly, concise, reference the historical session context.`
+      const sessionFacts = sessionRecord
+        ? `FACTS FROM THIS PAST SESSION (${sessionRecord.date} · ${sessionRecord.topic}, mood ${sessionRecord.mood}/5):
+- What happened: ${sessionRecord.summary}
+- Committed action: "${sessionRecord.committedAction}"
+- Follow-through: ${sessionRecord.followThrough}
+
+Reference these facts directly — do NOT say you lack access. Talk as if you remember this session.`
+        : ''
+      const seed = `The user is reviewing their past ${topic} session from ${date}. ${sessionFacts}\n\nThey ask: "${trimmed}". Reply warmly and concisely, weaving in the session facts above.`
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: [{ role: 'user', content: seed }] }),
+        body: JSON.stringify({ messages: [{ role: 'user', content: seed }], userContext: buildUserContextBlock(userName) }),
       })
       if (!res.ok) throw new Error('api')
       const data = await res.json()
@@ -167,7 +211,7 @@ export default function SessionRecapScreen({ session, onBack, onMenuOpen, coins 
     if (elapsed < minThink) await new Promise((r) => setTimeout(r, minThink - elapsed))
 
     setIsLoading(false)
-    setMessages((prev) => [...prev, { role: 'petch', text: reply }])
+    setMessages((prev) => [...prev, { role: 'petch', text: reply, animate: true }])
   }
 
   function handleKeyDown(e) {
@@ -177,8 +221,8 @@ export default function SessionRecapScreen({ session, onBack, onMenuOpen, coins 
   return (
     <div className={`${PHONE} bg-[#33CCFF]`}>
       {/* Header */}
-      <div className="shrink-0 mx-[-16px] mt-[-56px] md:mt-[-64px] bg-[#00BAFF] rounded-b-[20px]" style={{ height: 122 }}>
-        <div style={{ height: 61 }} />
+      <div className="shrink-0 mx-[-16px] mt-[-56px] md:mt-[-64px] bg-[#00BAFF] rounded-b-[20px] chat-header-bar">
+        <div className="chat-status-spacer" />
         <div className="flex items-center justify-between h-[46px] px-[15px]">
           <button
             onClick={() => { haptic('tap'); onBack?.() }}
@@ -212,7 +256,7 @@ export default function SessionRecapScreen({ session, onBack, onMenuOpen, coins 
         >
           {messages.map((msg, i) =>
             msg.role === 'petch'
-              ? <PetchMessage key={i} text={msg.text} />
+              ? <PetchMessage key={i} text={msg.text} animate={msg.animate} onDone={() => setTypingDoneFor(d => Math.max(d, i))} />
               : <UserMessage key={i} text={msg.text} />
           )}
 

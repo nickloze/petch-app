@@ -24,8 +24,9 @@ function CloseIcon() {
 const PRIMARY_ITEMS = ['Profile', 'Notifications', 'Permission', 'Updates']
 const SECONDARY_ITEMS = ['Data Policy', 'Health Data Protection', 'Privacy', 'FAQ']
 
-export default function SettingsSheet({ isOpen, onClose, theme = 'cyan', email = 'nicklozekoh@gmail.com' }) {
+export default function SettingsSheet({ isOpen, onClose, theme = 'cyan', userName }) {
   const c = THEMES[theme] ?? THEMES.cyan
+  const displayName = userName || 'friend'
 
   return (
     <>
@@ -105,7 +106,7 @@ export default function SettingsSheet({ isOpen, onClose, theme = 'cyan', email =
           }}
         >
           <span style={{ ...f, fontWeight: 400, fontSize: 20, color: 'white', letterSpacing: '-0.05px' }}>
-            {email}
+            {displayName}
           </span>
         </div>
 

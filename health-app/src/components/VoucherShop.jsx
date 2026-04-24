@@ -56,7 +56,7 @@ export default function VoucherShop({ open, balance = 0, onClose, onRedeem }) {
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
             style={{
               position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 161,
-              background: '#002F54',
+              background: '#0074B8',
               borderTopLeftRadius: 20, borderTopRightRadius: 20,
               padding: '18px 18px 28px',
               maxWidth: 500, margin: '0 auto',

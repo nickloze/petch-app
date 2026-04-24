@@ -8,6 +8,7 @@ import characterIdle from '../assets/animation/character-idle.gif'
 import characterIdleClicked from '../assets/animation/character-idle-clicked.gif'
 import StreakBar from './StreakBar.jsx'
 import TypingBubble from './TypingBubble.jsx'
+import { buildUserContextBlock } from '../utils/demoHistory'
 
 const TOPICS = ['Sleep', 'Nutrition', 'Exercise']
 const CHECKIN_REGEX = /check[\s-]?in/i
@@ -15,7 +16,7 @@ const CHECKIN_REGEX = /check[\s-]?in/i
 // ── Hamburger icon ────────────────────────────────────────────────
 function HamburgerIcon() {
   return (
-    <svg width="22" height="16" viewBox="0 0 22 16" fill="none" aria-label="Menu">
+    <svg width="19" height="14" viewBox="0 0 22 16" fill="none" aria-label="Menu">
       <rect y="0"  width="22" height="2.5" rx="1.25" fill="white" />
       <rect y="6.5" width="22" height="2.5" rx="1.25" fill="white" />
       <rect y="13" width="22" height="2.5" rx="1.25" fill="white" />
@@ -59,13 +60,13 @@ const CHECKIN_REPLIES = [
 // The App passes `postCheckInPhase` after the user finishes today's
 // check-in. HomeScreen maps it into a `chatMode` that drives the
 // welcome message + quick-reply chips + chip click behaviour.
-const WELCOME_MESSAGE =
-  "Welcome back to Petch! It's been a while, Nick! Hope you're ready to learn more about your health. Tell me, how've you been?"
-const DONE_MESSAGE =
-  "Nice work, Nick — you already did your check-in today! Want a quick look at what we learned?"
-const DONE_NOTHANKS_MESSAGE =
+const WELCOME_MESSAGE = (name) =>
+  `Welcome back to Petch! It's been a while, ${name}! Hope you're ready to learn more about your health. Tell me, how've you been?`
+const DONE_MESSAGE = (name) =>
+  `Nice work, ${name}! You already did your check-in today. Want a quick look at what we learned?`
+const DONE_NOTHANKS_MESSAGE = () =>
   "Cool, I'll check in with you tomorrow. Let's look at other things you could do today!"
-const RETURNED_MESSAGE =
+const RETURNED_MESSAGE = () =>
   "Oh, that was fast! The more you share about your health, the better I can help. Want to tell me a bit more?"
 
 const DONE_REPLIES = ['Full summary', "Today's summary", "No thanks, I'm good"]
@@ -121,7 +122,7 @@ function StatusBar({ isLoading, hasMessages, phase }) {
 }
 
 // Typewriter hook — returns the visible slice of `text`, starts after `delay` ms
-function useTypewriter(text, delay = 1500, speed = 28) {
+function useTypewriter(text, delay = 1500, speed = 10) {
   const [displayed, setDisplayed] = useState('')
   const [done, setDone] = useState(false)
 
@@ -161,9 +162,45 @@ function scrollAncestorToBottom(node) {
   }
 }
 
+// ── Shiny daily check-in button (woven into alternate AI replies) ─
+function ShinyCheckInButton({ onClick }) {
+  return (
+    <motion.button
+      onClick={onClick}
+      initial={{ opacity: 0, y: 8, scale: 0.94 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
+      className="self-start px-[18px] py-[14px] rounded-[12px] active:scale-[0.97] transition-transform duration-100 relative overflow-hidden"
+      style={{
+        backgroundImage:
+          'linear-gradient(110deg, #00BAFF 0%, #00BAFF 40%, #33CCFF 50%, #00BAFF 60%, #00BAFF 100%)',
+        backgroundSize: '220% 100%',
+        animation:
+          'daily-checkin-shimmer 3.6s linear infinite, daily-checkin-pulse 2.8s ease-in-out infinite',
+        border: 'none',
+        cursor: 'pointer',
+      }}
+    >
+      <span
+        className="relative z-10 inline-flex items-center"
+        style={{
+          fontFamily: "'DIN Next Rounded', sans-serif",
+          fontWeight: 700,
+          fontSize: 17,
+          color: '#FFFFFF',
+          letterSpacing: '-0.2px',
+          gap: 6,
+        }}
+      >
+        Start Daily Check-in
+      </span>
+    </motion.button>
+  )
+}
+
 // ── Chat message bubble ───────────────────────────────────────────
 function PetchMessage({ text, animate = false }) {
-  const { displayed } = useTypewriter(animate ? text : '', 0, 28)
+  const { displayed } = useTypewriter(animate ? text : '', 0, 10)
   const shown = animate ? displayed : text
   const ref = useRef(null)
 
@@ -220,6 +257,8 @@ export default function HomeScreen({
   streakPct = 0,
   streakNext = 3,
   streakBumped = false,
+  coins = 0,
+  userName = 'there',
 }) {
   const today = new Date().toLocaleDateString('en-GB', {
     day: 'numeric', month: 'long', year: 'numeric',
@@ -260,7 +299,7 @@ export default function HomeScreen({
   // ── On mount: delay then start typing welcome (depends on mode) ─
   useEffect(() => {
     const t = setTimeout(() => {
-      setMessages([{ role: 'petch', text: MODE_MESSAGES[chatMode], animate: true }])
+      setMessages([{ role: 'petch', text: MODE_MESSAGES[chatMode](userName), animate: true }])
     }, 1500)
     return () => clearTimeout(t)
   }, [])
@@ -269,7 +308,7 @@ export default function HomeScreen({
   useEffect(() => {
     if (messages.length === 1 && messages[0].animate) {
       const text = messages[0].text
-      const totalTime = 1500 + text.length * 28 + 300
+      const totalTime = 1500 + text.length * 10 + 300
       const t = setTimeout(() => {
         setShowReplies(true)
         setFirstMsgDone(true)
@@ -305,7 +344,7 @@ export default function HomeScreen({
       setInputText('')
       // Re-trigger the welcome typing sequence (same logic as initial mount)
       setTimeout(() => {
-        setMessages([{ role: 'petch', text: WELCOME_MESSAGE, animate: true }])
+        setMessages([{ role: 'petch', text: WELCOME_MESSAGE(userName), animate: true }])
       }, 400)
     }, 640)
   }
@@ -347,13 +386,14 @@ export default function HomeScreen({
         setMessages(prev => [...prev, { role: 'user', text: reply }])
         setShowReplies(false)
         setTimeout(() => {
+          const doneNothanksText = DONE_NOTHANKS_MESSAGE()
           setMessages(prev => [
             ...prev,
-            { role: 'petch', text: DONE_NOTHANKS_MESSAGE, animate: true },
+            { role: 'petch', text: doneNothanksText, animate: true },
           ])
           setChatMode('done-nothanks')
           // Reveal the new chip set after the typewriter finishes
-          setTimeout(() => setShowReplies(true), DONE_NOTHANKS_MESSAGE.length * 28 + 400)
+          setTimeout(() => setShowReplies(true), doneNothanksText.length * 10 + 400)
         }, 360)
         return
       }
@@ -401,11 +441,14 @@ export default function HomeScreen({
       }
       if (text === "Later! I'll be back") {
         setShowReplies(false)
+        const followUp = "Totally get it! While you're here, want to read a quick article, pick up a new mission, or finish one you've already got going?"
         setMessages(prev => [
           ...prev,
           { role: 'user', text },
-          { role: 'petch', text: "No worries! I'll be here when you're ready. Come back anytime 🐾", animate: true },
+          { role: 'petch', text: followUp, animate: true },
         ])
+        setChatMode('done-nothanks')
+        setTimeout(() => setShowReplies(true), followUp.length * 10 + 400)
         return
       }
     }
@@ -419,21 +462,31 @@ export default function HomeScreen({
     const loadingStartedAt = Date.now()
 
     let reply = ''
+    let suggestions = []
     try {
       const history = [...messages, userMsg].map(m => ({
         role: m.role === 'petch' ? 'assistant' : 'user',
         content: m.text,
       }))
 
+      // Predict whether this incoming AI reply will be an "alternate"
+      // one — i.e. will render the shiny Start Daily Check-in CTA.
+      // If so, ask the model to phrase the reply so the CTA feels
+      // like the natural next step.
+      const upcomingPetchCount =
+        messages.filter(m => m.role === 'petch').length + 1
+      const inviteCheckIn = upcomingPetchCount % 2 === 0
+
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: history }),
+        body: JSON.stringify({ messages: history, inviteCheckIn, userContext: buildUserContextBlock(userName) }),
       })
 
       if (!res.ok) throw new Error('API error')
       const data = await res.json()
       reply = data.reply
+      suggestions = Array.isArray(data.suggestions) ? data.suggestions : []
     } catch {
       // Fallback response when API isn't available — contextual to the mood
       if (isFirstUserMsg) {
@@ -448,6 +501,7 @@ export default function HomeScreen({
       } else {
         reply = "Sounds good! I'm always here when you need me."
       }
+      suggestions = []
     } finally {
       const elapsed = Date.now() - loadingStartedAt
       const minThink = 900
@@ -457,10 +511,18 @@ export default function HomeScreen({
       setIsLoading(false)
     }
 
-    setMessages(prev => [...prev, { role: 'petch', text: reply, animate: true }])
+    setMessages(prev => {
+      const newPetchCount = prev.filter(m => m.role === 'petch').length + 1
+      // "Every alternate" — weave shiny CTA into the 2nd, 4th, 6th… AI reply
+      const withCheckInButton = newPetchCount % 2 === 0
+      return [
+        ...prev,
+        { role: 'petch', text: reply, animate: true, suggestions, withCheckInButton },
+      ]
+    })
 
     // After typing finishes, advance phase and show next quick replies
-    const replyTime = reply.length * 28 + 400
+    const replyTime = reply.length * 10 + 400
     setTimeout(() => {
       if (isFirstUserMsg) setPhase(1)
       setShowReplies(true)
@@ -507,11 +569,10 @@ export default function HomeScreen({
 
       {/* ══ HEADER — 122px total, matches Figma node 2043:2529 ═══════ */}
       <div
-        className="shrink-0 mx-[-16px] mt-[-56px] md:mt-[-64px] bg-[#00BAFF] rounded-b-[20px]"
-        style={{ height: 122 }}
+        className="shrink-0 mx-[-16px] mt-[-56px] md:mt-[-64px] bg-[#00BAFF] rounded-b-[20px] chat-header-bar"
       >
-        {/* Status bar spacer — content row starts at top:61px in Figma */}
-        <div style={{ height: 61 }} />
+        {/* Status bar spacer — adapts to iOS safe-area on mobile */}
+        <div className="chat-status-spacer" />
 
         {/* Content row — 46px tall, px-15px, matches Figma exactly */}
         <div className="flex items-center justify-between h-[46px] px-[15px]">
@@ -603,7 +664,7 @@ export default function HomeScreen({
                 lineHeight: 1,
               }}
             >
-              10
+              {coins}
             </span>
             {/* 15.316px coin circle — gold */}
             <div
@@ -640,29 +701,57 @@ export default function HomeScreen({
             {isLoading && <TypingBubble key="petch-typing" />}
           </AnimatePresence>
 
-          {/* Quick reply buttons — set depends on the current chat mode */}
-          {showReplies && (
-            <div className="flex flex-col gap-[14px]">
-              {(chatMode === 'normal'
-                ? (phase === 0 ? MOOD_REPLIES : CHECKIN_REPLIES)
-                : (MODE_REPLIES[chatMode] ?? [])
-              ).map(reply => (
-                <button
-                  key={reply}
-                  onClick={() => handleChipClick(reply)}
-                  className="self-start px-[16px] py-[13px] rounded-[10px] text-white text-[17px] text-left
-                             active:scale-[0.97] transition-transform duration-100"
-                  style={{
-                    background: '#50D8FF',
-                    fontFamily: "'DIN Next Rounded', sans-serif",
-                    fontWeight: 400,
-                  }}
-                >
-                  {reply}
-                </button>
-              ))}
-            </div>
-          )}
+          {/* Quick reply buttons — AI suggestions where available, hardcoded
+              fallback for the very first welcome (no API call yet) and for
+              non-normal modes. Shiny daily check-in button is woven in on
+              every alternate AI message. */}
+          {showReplies && (() => {
+            const lastPetch = [...messages].reverse().find(m => m.role === 'petch')
+            const aiSuggestions = lastPetch?.suggestions ?? []
+
+            let replies
+            if (aiSuggestions.length > 0) {
+              replies = aiSuggestions
+            } else if (chatMode === 'normal') {
+              replies = phase === 0 ? MOOD_REPLIES : CHECKIN_REPLIES
+            } else {
+              replies = MODE_REPLIES[chatMode] ?? []
+            }
+
+            const showShiny =
+              !!lastPetch?.withCheckInButton && chatMode === 'normal' && !cardExpanded
+
+            // When the shiny check-in CTA is visible, the primary affirmative
+            // action is already the button — drop any chip that duplicates it
+            // ("Yes", "Sure, let's do it", "Start check-in", etc.) so the chip
+            // row only shows deferrals or "tell me more"-style replies.
+            const AFFIRM_RE = /^(yes|yeah|yep|sure|let'?s (do|go|start)|start|i'?m in|ok(ay)?|okay)\b/i
+            const filtered = showShiny
+              ? replies.filter(r => !AFFIRM_RE.test(String(r).trim()))
+              : replies
+            const displayedReplies = showShiny ? filtered.slice(0, 2) : replies
+
+            return (
+              <div className="flex flex-col gap-[14px]">
+                {showShiny && <ShinyCheckInButton onClick={openCheckInCard} />}
+                {displayedReplies.map(reply => (
+                  <button
+                    key={reply}
+                    onClick={() => handleChipClick(reply)}
+                    className="self-start px-[16px] py-[13px] rounded-[10px] text-white text-[17px] text-left
+                               active:scale-[0.97] transition-transform duration-100"
+                    style={{
+                      background: '#50D8FF',
+                      fontFamily: "'DIN Next Rounded', sans-serif",
+                      fontWeight: 400,
+                    }}
+                  >
+                    {reply}
+                  </button>
+                ))}
+              </div>
+            )
+          })()}
         </div>
 
         {/* ── TOPIC FRAME OVERLAY — dog + bubble + progress bar ── */}

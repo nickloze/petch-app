@@ -9,11 +9,12 @@ import LearningFrame           from './components/LearningFrame'
 import MenuDrawer              from './components/MenuDrawer'
 import SettingsSheet           from './components/SettingsSheet'
 import Onboarding, { hasOnboarded } from './components/Onboarding'
+import NameGate                     from './components/NameGate'
 import NudgeSheet, { pickNudge }    from './components/NudgeSheet'
 import VoucherShop             from './components/VoucherShop'
 import CoinFly                 from './components/CoinFly'
 import { startBgMusic, preloadSounds } from './utils/sounds'
-import { getBalance, earn, spend }     from './utils/coins'
+import { earn, spend, resetBalance } from './utils/coins'
 import * as MissionsState              from './utils/missions'
 import { recordCheckIn, getStreak, milestoneProgress } from './utils/streak'
 
@@ -52,13 +53,15 @@ function applyPhaseColor(colour) {
 }
 
 export default function App() {
+  // Name gate runs every app restart — not persisted, reset each mount.
+  const [userName,      setUserName]      = useState('')
   const [onboarded,     setOnboarded]     = useState(() => hasOnboarded())
   const [phase,         setPhase]         = useState(() => (hasOnboarded() ? 'home' : 'onboarding'))
   const [screen,        setScreen]        = useState('home')
   const [menuOpen,      setMenuOpen]      = useState(false)
   const [settingsOpen,  setSettingsOpen]  = useState(false)
   const [shopOpen,      setShopOpen]      = useState(false)
-  const [coins,         setCoins]         = useState(() => getBalance())
+  const [coins,         setCoins]         = useState(() => resetBalance())
   const [fadeReturn,    setFadeReturn]    = useState(false)
   const [selectedTopic, setSelectedTopic] = useState('Sleep')
   const [mgmtAns,       setMgmtAns]       = useState({})
@@ -257,6 +260,14 @@ export default function App() {
 
   const streakProgress = milestoneProgress(streak.count)
 
+  if (!userName) {
+    return (
+      <div className="md:min-h-screen md:flex md:items-center md:justify-center overflow-x-hidden">
+        <NameGate onSubmit={(n) => setUserName(n)} />
+      </div>
+    )
+  }
+
   if (phase === 'onboarding') {
     return (
       <div className="md:min-h-screen md:flex md:items-center md:justify-center overflow-x-hidden">
@@ -290,6 +301,7 @@ export default function App() {
             setMenuOpen(false)
           }}
           onAllSessionsClick={() => handleMenuNavigate('health')}
+          userName={userName}
         />
       )}
 
@@ -298,6 +310,7 @@ export default function App() {
           isOpen={settingsOpen}
           onClose={() => setSettingsOpen(false)}
           theme={screen === 'health' ? 'navy' : 'cyan'}
+          userName={userName}
         />
       )}
 
@@ -315,6 +328,7 @@ export default function App() {
           streakNext={streakProgress.next}
           streakBumped={streakBumped}
           topBarCoinRef={topBarCoinRef}
+          userName={userName}
         />
       )}
       {phase === 'home' && screen === 'community' && (
@@ -341,6 +355,7 @@ export default function App() {
           {...menuProps}
           initialView={healthInitialView}
           onInitialViewConsumed={() => setHealthInitialView(null)}
+          userName={userName}
         />
       )}
       {phase === 'home' && screen === 'session-recap' && (
@@ -349,6 +364,7 @@ export default function App() {
           onBack={() => { prevScreenRef.current = 'home'; setScreen('home') }}
           onMenuOpen={() => setMenuOpen(true)}
           coins={coins}
+          userName={userName}
         />
       )}
 

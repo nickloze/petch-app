@@ -3,6 +3,7 @@ import { PHONE, SendIcon } from '../utils/frame.jsx'
 import coinSvg from '../assets/coin.svg'
 import characterIdle from '../assets/animation/character-idle.gif'
 import characterIdleClicked from '../assets/animation/character-idle-clicked.gif'
+import { buildUserContextBlock } from '../utils/demoHistory'
 
 // ── Navy theme ───────────────────────────────────────────────────
 const NAVY = {
@@ -66,7 +67,7 @@ What would make this easier to stick to in a hectic week?`,
 // ── Icons ─────────────────────────────────────────────────────────
 function HamburgerIcon() {
   return (
-    <svg width="22" height="16" viewBox="0 0 22 16" fill="none" aria-label="Menu">
+    <svg width="19" height="14" viewBox="0 0 22 16" fill="none" aria-label="Menu">
       <rect y="0"   width="22" height="2.5" rx="1.25" fill="white" />
       <rect y="6.5" width="22" height="2.5" rx="1.25" fill="white" />
       <rect y="13"  width="22" height="2.5" rx="1.25" fill="white" />
@@ -125,22 +126,23 @@ function BackIcon() {
 }
 
 // ── Typewriter ────────────────────────────────────────────────────
-function useTypewriter(text, delay = 600, speed = 18) {
+function useTypewriter(text, delay = 600, speed = 10, onDone) {
   const [displayed, setDisplayed] = useState('')
 
   useEffect(() => {
     setDisplayed('')
-    if (!text) return
+    if (!text) { onDone?.(); return }
     let idx = 0
     let timer
     const start = setTimeout(() => {
       timer = setInterval(() => {
         idx++
         setDisplayed(text.slice(0, idx))
-        if (idx >= text.length) clearInterval(timer)
+        if (idx >= text.length) { clearInterval(timer); onDone?.() }
       }, speed)
     }, delay)
     return () => { clearTimeout(start); clearInterval(timer) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [text, delay, speed])
 
   return displayed
@@ -158,8 +160,8 @@ function scrollAncestorToBottom(node) {
   }
 }
 
-function PetchMessage({ text, animate = false }) {
-  const displayed = useTypewriter(animate ? text : '', 400, 16)
+function PetchMessage({ text, animate = false, onDone }) {
+  const displayed = useTypewriter(animate ? text : '', 400, 10, onDone)
   const shown = animate ? displayed : text
   const ref = useRef(null)
 
@@ -192,10 +194,10 @@ function UserMessage({ text }) {
 function NavyHeader({ onMenuOpen, coins }) {
   return (
     <div
-      className="shrink-0 mx-[-16px] mt-[-56px] md:mt-[-64px] rounded-b-[20px]"
-      style={{ height: 122, background: NAVY.header }}
+      className="shrink-0 mx-[-16px] mt-[-56px] md:mt-[-64px] rounded-b-[20px] chat-header-bar"
+      style={{ background: NAVY.header }}
     >
-      <div style={{ height: 61 }} />
+      <div className="chat-status-spacer" />
       <div className="flex items-center justify-between h-[46px] px-[15px]">
         <button
           onClick={onMenuOpen}
@@ -397,7 +399,7 @@ function FullOverviewView({ initialQuestion, selectedItem, onBack, onMenuOpen, c
         const res = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ messages: [{ role: 'user', content: seedContent }] }),
+          body: JSON.stringify({ messages: [{ role: 'user', content: seedContent }], userContext: buildUserContextBlock(userName) }),
         })
         if (!res.ok) throw new Error('API error')
         const data = await res.json()
@@ -444,7 +446,7 @@ function FullOverviewView({ initialQuestion, selectedItem, onBack, onMenuOpen, c
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: history }),
+        body: JSON.stringify({ messages: history, userContext: buildUserContextBlock(userName) }),
       })
       if (!res.ok) throw new Error('API error')
       const data = await res.json()
@@ -470,10 +472,10 @@ function FullOverviewView({ initialQuestion, selectedItem, onBack, onMenuOpen, c
     <>
       {/* Header with back button overriding the hamburger */}
       <div
-        className="shrink-0 mx-[-16px] mt-[-56px] md:mt-[-64px] rounded-b-[20px]"
-        style={{ height: 122, background: NAVY.header }}
+        className="shrink-0 mx-[-16px] mt-[-56px] md:mt-[-64px] rounded-b-[20px] chat-header-bar"
+        style={{ background: NAVY.header }}
       >
-        <div style={{ height: 61 }} />
+        <div className="chat-status-spacer" />
         <div className="flex items-center justify-between h-[46px] px-[15px]">
           <button
             onClick={onBack}
@@ -615,6 +617,7 @@ export default function HealthOverviewScreen({
   coins = 10,
   initialView = null,
   onInitialViewConsumed,
+  userName = 'there',
 }) {
   // If the home chat routed us here with a specific view, honour it.
   const [view, setView] = useState(initialView === 'fullOverview' ? 'fullOverview' : 'log')

@@ -143,6 +143,23 @@ html, body {
   }
 }
 
+/* ── Chat-style top header (PETCH + title + coin) ─────────────────
+   Used by HomeScreen, CommunityScreen, MissionsScreen, SessionRecap,
+   ManagementFrame, LearningFrame, HealthOverviewScreen.
+   Mobile Safari: webview extends under the status bar due to
+   viewport-fit=cover, so we size the spacer to env(safe-area-inset-top)
+   instead of a hardcoded 61px. Desktop keeps the Figma spec. */
+.chat-header-bar {
+  height: calc(max(env(safe-area-inset-top, 0px), 12px) + 61px);
+}
+.chat-status-spacer {
+  height: max(env(safe-area-inset-top, 0px), 12px);
+}
+@media (min-width: 768px) {
+  .chat-header-bar { height: 122px; }
+  .chat-status-spacer { height: 61px; }
+}
+
 /* Navy input placeholder (Health Overview theme) */
 .navy-input::placeholder { color: rgba(255, 255, 255, 0.6); }
 
@@ -215,6 +232,16 @@ html, body {
   0%   { background-position:   0% 50%; filter: brightness(1); }
   50%  { background-position: 100% 50%; filter: brightness(1.15); }
   100% { background-position:   0% 50%; filter: brightness(1); }
+}
+
+/* ── Shiny daily check-in button — moving sheen across gold ───── */
+@keyframes daily-checkin-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+@keyframes daily-checkin-pulse {
+  0%, 100% { box-shadow: 0 4px 14px rgba(0, 186, 255, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.4) inset; }
+  50%      { box-shadow: 0 6px 22px rgba(0, 186, 255, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.6) inset; }
 }
 
 /* Respect user's reduced-motion preference */

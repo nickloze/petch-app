@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import characterIdle from '../assets/animation/character-idle.gif'
 import coinSvg       from '../assets/coin.svg'
-import { CardInputRow } from '../utils/frame.jsx'
 import { PHONE }     from '../utils/frame.jsx'
 import { playMcq }   from '../utils/sounds'
 import QuitConfirmSheet from './QuitConfirmSheet.jsx'
@@ -66,10 +65,9 @@ function HamburgerIcon() {
 function Header({ subtitle, onMenu }) {
   return (
     <div
-      className="shrink-0 mx-[-16px] mt-[-56px] md:mt-[-64px] bg-[#00BAFF] rounded-b-[20px]"
-      style={{ height: 122 }}
+      className="shrink-0 mx-[-16px] mt-[-56px] md:mt-[-64px] bg-[#00BAFF] rounded-b-[20px] chat-header-bar"
     >
-      <div style={{ height: 61 }} />
+      <div className="chat-status-spacer" />
       <div className="flex items-center justify-between h-[46px] px-[15px]">
 
         <button
@@ -361,9 +359,6 @@ export default function ManagementFrame({ topic = 'Sleep', onComplete, onRestart
               </div>
             ))}
           </div>
-
-          {/* Text + mic input — users can type or talk instead of tapping an option */}
-          <CardInputRow placeholder="Type something..." />
 
         </div>
       </div>

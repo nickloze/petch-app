@@ -1,13 +1,10 @@
 import coinSvg from '../assets/coin.svg'
 import shopSvg from '../assets/shop.svg'
+import { DEMO_SESSION_LIST } from '../utils/demoHistory'
 
 const MENU_WIDTH = 279
 
-const SESSIONS = [
-  { topic: 'Sleep',     date: '11 Apr 2026' },
-  { topic: 'Sleep',     date: '15 Apr 2026' },
-  { topic: 'Nutrition', date: '20 Apr 2026' },
-]
+const SESSIONS = DEMO_SESSION_LIST
 
 const NAV_ITEMS = [
   { id: 'home',      label: 'Chat with Petch' },
@@ -42,6 +39,7 @@ export default function MenuDrawer({
   onCoinsClick,
   onSessionClick,
   onAllSessionsClick,
+  userName = 'friend',
 }) {
   const isNavy = activeScreen === 'health'
   const theme = isNavy
@@ -63,7 +61,9 @@ export default function MenuDrawer({
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
-        paddingTop: 61,
+        // Top spacing tracks the iOS safe-area so the header sits just
+        // below the status bar / Dynamic Island — no hardcoded 61px.
+        paddingTop: 'max(env(safe-area-inset-top, 0px), 12px)',
         // Respect the iOS home indicator only — no extra dead space
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
         overflow: 'hidden',
@@ -240,7 +240,7 @@ export default function MenuDrawer({
           }} />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
             <span style={{ ...f, fontWeight: 500, fontSize: 20, color: 'white', letterSpacing: '-0.05px', whiteSpace: 'nowrap' }}>
-              Nicholas Koh
+              {userName}
             </span>
             <span style={{ ...f, fontWeight: 400, fontSize: 16, color: 'white', letterSpacing: '-0.04px' }}>
               Loves Sleeping
