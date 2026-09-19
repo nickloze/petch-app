@@ -1,0 +1,391 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Petch Cover</title>
+<style>
+  @font-face { font-family:'DIN Next Rounded'; src:url('fonts/din-next-rounded-lt-pro-light.otf')   format('opentype'); font-weight:300; }
+  @font-face { font-family:'DIN Next Rounded'; src:url('fonts/din-next-rounded-lt-pro-regular.otf') format('opentype'); font-weight:400; }
+  @font-face { font-family:'DIN Next Rounded'; src:url('fonts/din-next-rounded-lt-pro-medium.otf')  format('opentype'); font-weight:500; }
+  @font-face { font-family:'DIN Next Rounded'; src:url('fonts/din-next-rounded-lt-pro-bold.otf')    format('opentype'); font-weight:600 900; }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { background:#000; overflow:hidden; }
+  body { font-family:'DIN Next Rounded', sans-serif; -webkit-font-smoothing:antialiased; }
+
+  #stage {
+    position:relative; overflow:hidden;
+    background:
+      radial-gradient(120% 90% at 18% 8%,  #6FE0FF 0%, rgba(111,224,255,0) 55%),
+      radial-gradient(110% 95% at 92% 96%, #0090D6 0%, rgba(0,144,214,0) 58%),
+      linear-gradient(168deg, #3ED2FF 0%, #16BFFA 46%, #039FE0 100%);
+  }
+
+  /* ── drifting light blooms ───────────────────────────── */
+  .bloom { position:absolute; border-radius:50%; filter:blur(90px); pointer-events:none; will-change:transform; }
+  #bloomA { background:rgba(180,245,255,0.55); }
+  #bloomB { background:rgba(0,120,190,0.45);  }
+  #bloomC { background:rgba(120,230,255,0.40); }
+
+  /* ── scrolling dot texture ───────────────────────────── */
+  #texture {
+    position:absolute; inset:-200px; pointer-events:none; opacity:0.16;
+    background-image:radial-gradient(rgba(255,255,255,0.95) 1.6px, transparent 1.7px);
+    will-change:transform;
+  }
+
+  /* ── phone conveyor ──────────────────────────────────── */
+  #band { position:absolute; left:0; right:0; pointer-events:none; }
+  #strip { position:absolute; top:0; left:0; height:100%; will-change:transform; }
+
+  .phone {
+    position:absolute; top:0;
+    border-radius:var(--radius);
+    background:#111;
+    padding:var(--bezel);
+    box-shadow:
+      0 0 0 1.5px rgba(255,255,255,0.28),
+      0 var(--sh1) var(--sh2) rgba(0,52,88,0.42),
+      0 4px 14px rgba(0,40,70,0.30);
+    will-change:transform;
+  }
+  .phone .screen {
+    position:relative; width:100%; height:100%;
+    border-radius:calc(var(--radius) - var(--bezel));
+    overflow:hidden; background:#33CCFF;
+  }
+  .phone .screen img { width:100%; height:100%; display:block; object-fit:cover; }
+  .phone .island {
+    position:absolute; top:calc(var(--bezel) * 1.9); left:50%; transform:translateX(-50%);
+    width:26%; height:3.4%; background:#000; border-radius:999px; z-index:3;
+  }
+  /* glass sheen sweeping across each device */
+  .phone .sheen {
+    position:absolute; inset:0; z-index:4; mix-blend-mode:screen; pointer-events:none;
+    background:linear-gradient(104deg,
+      rgba(255,255,255,0) 41%,
+      rgba(255,255,255,0.10) 48%,
+      rgba(255,255,255,0.17) 50%,
+      rgba(255,255,255,0.10) 52%,
+      rgba(255,255,255,0) 59%);
+    background-size:300% 100%;
+  }
+  /* soft edge falloff so devices never visibly pop in or out */
+  #bandMask {
+    position:absolute; inset:0; pointer-events:none;
+    background:linear-gradient(90deg,
+      rgba(35,200,250,1) 0%, rgba(35,200,250,0) 13%,
+      rgba(35,200,250,0) 87%, rgba(35,200,250,1) 100%);
+    opacity:0.0;
+  }
+
+  /* ── foreground scrim + type ─────────────────────────── */
+  #scrim {
+    position:absolute; left:0; right:0; bottom:0; pointer-events:none;
+    background:linear-gradient(to top, rgba(0,119,186,0.92) 0%, rgba(0,134,203,0.62) 34%, rgba(0,150,220,0.18) 68%, rgba(0,160,230,0) 100%);
+  }
+  #topScrim {
+    position:absolute; left:0; right:0; top:0; pointer-events:none;
+    background:linear-gradient(to bottom, rgba(0,128,196,0.34) 0%, rgba(0,150,220,0) 100%);
+  }
+
+  #eyebrow {
+    position:absolute; color:rgba(255,255,255,0.88); font-weight:500;
+    letter-spacing:0.22em; text-transform:uppercase; white-space:nowrap;
+    text-shadow:0 2px 10px rgba(0,60,100,0.45); will-change:transform;
+  }
+  #title {
+    position:absolute; color:#fff; font-weight:900; letter-spacing:0.01em; line-height:0.95;
+    text-shadow:0 10px 34px rgba(0,58,96,0.50); will-change:transform;
+  }
+  #tagline {
+    position:absolute; color:rgba(255,255,255,0.96); font-weight:400; line-height:1.28;
+    text-shadow:0 4px 18px rgba(0,58,96,0.45); will-change:transform;
+  }
+  #credit {
+    position:absolute; color:rgba(255,255,255,0.78); font-weight:500;
+    letter-spacing:0.16em; text-transform:uppercase; text-align:right; white-space:nowrap;
+    text-shadow:0 2px 10px rgba(0,60,100,0.40);
+  }
+
+  /* ── mascot ──────────────────────────────────────────── */
+  #petWrap { position:absolute; will-change:transform; }
+  #petShadow {
+    position:absolute; left:50%; transform:translateX(-50%);
+    border-radius:50%; background:rgba(0,70,115,0.34); filter:blur(14px);
+  }
+  #pet { position:absolute; inset:0; }
+  #pet img { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; visibility:hidden; }
+  #pet img.on { visibility:visible; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="bloom" id="bloomA"></div>
+  <div class="bloom" id="bloomB"></div>
+  <div class="bloom" id="bloomC"></div>
+  <div id="texture"></div>
+
+  <div id="band"><div id="strip"></div><div id="bandMask"></div></div>
+
+  <div id="topScrim"></div>
+  <div id="scrim"></div>
+
+  <div id="petWrap"><div id="petShadow"></div><div id="pet"></div></div>
+
+  <div id="eyebrow">Knowing &nbsp;→&nbsp; Learning &nbsp;→&nbsp; Doing</div>
+  <div id="title">PETCH</div>
+  <div id="tagline"></div>
+  <div id="credit"></div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────────
+//  Deterministic 8-second, loop-perfect cover timeline.
+//  Every animated quantity is a function of the normalised time
+//  u = t / DUR that returns to its t=0 value at t=DUR, so the
+//  clip cuts back to its own first frame with no visible seam.
+// ─────────────────────────────────────────────────────────────
+const P  = new URLSearchParams(location.search)
+const W  = +(P.get('w') || 1920)
+const H  = +(P.get('h') || 1080)
+const DUR = 8
+
+const TAU = Math.PI * 2
+const SCREENS = ['home', 'missions', 'community', 'health']
+const PET_FRAMES = 75
+const PET_LOOPS  = 3          // integer ⇒ the mascot cycle also closes at t=DUR
+
+// ── per-format layout ────────────────────────────────────────
+// One shared timeline, three compositions. Horizontal metrics are
+// fractions of W, vertical metrics fractions of H, type sizes are
+// fractions of the short edge — which is 1080 in all three formats.
+const AR  = W / H
+const FMT = AR > 1.30 ? 'wide' : (AR > 0.80 ? 'square' : 'tall')
+const FB  = Math.min(W, H)                 // type base
+
+const LAYOUT = {
+  wide: {
+    phH: 0.5556, phoneTop: 0.0917, gapRatio: 0.31,
+    padL: 0.0573, tagMaxW: 0.469,
+    titleAtTop: false, titleSize: 0.0981, titleY: 0.1852,
+    tagSize: 0.0287, tagY: 0.1000,
+    eyebSize: 0.0213, eyebY: 0.0574,
+    creditSize: 0.0176, creditY: 0.0426,
+    petH: 0.2778, petRight: 0.0781, petBottom: 0.0889,
+    scrimH: 0.42, topScrimH: 0.14, shadow: 1.0,
+  },
+  square: {
+    phH: 0.5185, phoneTop: 0.0648, gapRatio: 0.31,
+    padL: 0.0667, tagMaxW: 0.611,
+    titleAtTop: false, titleSize: 0.0833, titleY: 0.1759,
+    tagSize: 0.0250, tagY: 0.1037, tagLineBreak: true,
+    eyebSize: 0.0185, eyebY: 0.0389,
+    creditSize: 0.0157, creditY: 0.0444,
+    petH: 0.2500, petRight: 0.0648, petBottom: 0.0796,
+    scrimH: 0.46, topScrimH: 0.11, shadow: 0.9,
+  },
+  tall: {
+    phH: 0.4688, phoneTop: 0.2865, gapRatio: 0.31,
+    padL: 0.0741, tagMaxW: 0.815,
+    titleAtTop: true, titleSize: 0.1074, titleY: 0.1042,
+    tagSize: 0.0315, tagY: 0.1823,
+    eyebSize: 0.0204, eyebY: 0.0781,
+    creditSize: 0.0167, creditY: 0.0417,
+    petH: 0.2135, petRight: 0.0833, petBottom: 0.0729,
+    scrimH: 0.30, topScrimH: 0.34, shadow: 1.0,
+  },
+}[FMT]
+
+const K = FB / 1080                        // generic scale for stroke/shadow sizes
+
+const PH_H    = Math.round(LAYOUT.phH * H)
+const PH_W    = Math.round(PH_H * 402 / 874)
+const GAP     = Math.round(PH_W * LAYOUT.gapRatio)
+const PITCH   = PH_W + GAP
+const PERIOD  = PITCH * SCREENS.length     // one full pass of the unique sequence
+const BEZEL   = Math.max(4, Math.round(PH_W * 0.026))
+const RADIUS  = Math.round(PH_W * 0.125)
+
+const BAND_PAD = Math.round(80 * K)
+const BAND_TOP = Math.round(LAYOUT.phoneTop * H) - BAND_PAD / 2
+const BAND_H   = PH_H + BAND_PAD
+
+const stage = document.getElementById('stage')
+stage.style.width  = W + 'px'
+stage.style.height = H + 'px'
+
+// ── build the conveyor ───────────────────────────────────────
+const band  = document.getElementById('band')
+const strip = document.getElementById('strip')
+band.style.top    = BAND_TOP + 'px'
+band.style.height = BAND_H + 'px'
+
+const REPEATS = Math.ceil((W + PERIOD * 2) / PERIOD) + 1
+const phones  = []
+for (let r = 0; r < REPEATS; r++) {
+  for (let i = 0; i < SCREENS.length; i++) {
+    const el = document.createElement('div')
+    el.className = 'phone'
+    el.style.setProperty('--radius', RADIUS + 'px')
+    el.style.setProperty('--bezel',  BEZEL + 'px')
+    el.style.setProperty('--sh1', Math.round(26 * K * LAYOUT.shadow) + 'px')
+    el.style.setProperty('--sh2', Math.round(60 * K * LAYOUT.shadow) + 'px')
+    el.style.width  = PH_W + 'px'
+    el.style.height = PH_H + 'px'
+    el.innerHTML =
+      '<div class="screen"><img src="screens/' + SCREENS[i] + '.png"><div class="island"></div>' +
+      '<div class="sheen"></div></div>'
+    strip.appendChild(el)
+    phones.push({ el, base: (r * SCREENS.length + i) * PITCH, sheen: el.querySelector('.sheen') })
+  }
+}
+const START_X = -PERIOD + (W - PITCH * SCREENS.length) / 2
+
+// ── mascot frames ────────────────────────────────────────────
+const petWrap   = document.getElementById('petWrap')
+const petShadow = document.getElementById('petShadow')
+const pet       = document.getElementById('pet')
+
+const PET_H = Math.round(LAYOUT.petH * H)
+const PET_W = Math.round(PET_H * 550 / 693)
+petWrap.style.width  = PET_W + 'px'
+petWrap.style.height = PET_H + 'px'
+petWrap.style.left   = Math.round(W - PET_W - LAYOUT.petRight * W) + 'px'
+petWrap.style.top    = Math.round(H - PET_H - LAYOUT.petBottom * H) + 'px'
+petShadow.style.width  = Math.round(PET_W * 0.74) + 'px'
+petShadow.style.height = Math.round(PET_H * 0.10) + 'px'
+petShadow.style.bottom = Math.round(-PET_H * 0.035) + 'px'
+
+const petImgs = []
+for (let i = 1; i <= PET_FRAMES; i++) {
+  const img = document.createElement('img')
+  img.src = 'pet/f' + String(i).padStart(3, '0') + '.png'
+  pet.appendChild(img)
+  petImgs.push(img)
+}
+let petOn = -1
+
+// ── type ─────────────────────────────────────────────────────
+const eyebrow = document.getElementById('eyebrow')
+const title   = document.getElementById('title')
+const tagline = document.getElementById('tagline')
+const credit  = document.getElementById('credit')
+const scrim   = document.getElementById('scrim')
+const topScrim = document.getElementById('topScrim')
+
+const PAD_L = Math.round(LAYOUT.padL * W)
+scrim.style.height    = Math.round(LAYOUT.scrimH * H) + 'px'
+topScrim.style.height = Math.round(LAYOUT.topScrimH * H) + 'px'
+
+eyebrow.style.left     = PAD_L + 'px'
+eyebrow.style.top      = Math.round(LAYOUT.eyebY * H) + 'px'
+eyebrow.style.fontSize = Math.round(LAYOUT.eyebSize * FB) + 'px'
+
+title.style.left     = PAD_L + 'px'
+title.style.fontSize = Math.round(LAYOUT.titleSize * FB) + 'px'
+title.style[LAYOUT.titleAtTop ? 'top' : 'bottom'] = Math.round(LAYOUT.titleY * H) + 'px'
+
+tagline.style.left      = PAD_L + 'px'
+tagline.style[LAYOUT.titleAtTop ? 'top' : 'bottom'] = Math.round(LAYOUT.tagY * H) + 'px'
+tagline.style.fontSize  = Math.round(LAYOUT.tagSize * FB) + 'px'
+tagline.style.maxWidth  = Math.round(LAYOUT.tagMaxW * W) + 'px'
+tagline.innerHTML = 'A daily AI health companion for young adults.<br>Chat first. One check-in a day. One action that sticks.'
+
+credit.style.right    = PAD_L + 'px'
+credit.style.bottom   = Math.round(LAYOUT.creditY * H) + 'px'
+credit.style.fontSize = Math.round(LAYOUT.creditSize * FB) + 'px'
+credit.textContent    = 'Nicholas Koh · LASALLE'
+
+// ── blooms + texture geometry ────────────────────────────────
+const bloomA = document.getElementById('bloomA')
+const bloomB = document.getElementById('bloomB')
+const bloomC = document.getElementById('bloomC')
+for (const [el, d] of [[bloomA, 0.95], [bloomB, 1.15], [bloomC, 0.75]]) {
+  el.style.width  = Math.round(W * d) + 'px'
+  el.style.height = Math.round(W * d * 0.72) + 'px'
+  el.style.left   = '0px'
+  el.style.top    = '0px'
+  el.style.marginLeft = Math.round(-W * d / 2) + 'px'
+  el.style.marginTop  = Math.round(-W * d * 0.72 / 2) + 'px'
+}
+const TILE = Math.round(46 * K)
+document.getElementById('texture').style.backgroundSize = TILE + 'px ' + TILE + 'px'
+
+// ── the timeline ─────────────────────────────────────────────
+function setT(t) {
+  const u = (t / DUR) % 1                    // 0 → 1 across the clip
+  const a = TAU * u
+
+  // conveyor: travels exactly one sequence period, so the strip at
+  // u=1 is pixel-identical to u=0 with the next device in each slot.
+  const shift = START_X - u * PERIOD
+  strip.style.transform = 'translate3d(' + shift.toFixed(3) + 'px,0,0)'
+
+  // per-device motion is a function of *position*, not of index, so it
+  // survives the wrap: device n+1 inherits device n's exact state.
+  for (const p of phones) {
+    const x  = p.base + shift
+    const ph = TAU * (x / PERIOD)
+    const bob   = Math.sin(ph) * (13 * K)
+    const bob2  = Math.sin(ph * 2 + 1.1) * (5 * K)
+    const tilt  = Math.sin(ph + Math.PI / 3) * 3.1
+    const scale = 1 + Math.cos(ph + 0.7) * 0.028
+    const yTop  = (BAND_H - PH_H) / 2 + bob + bob2
+    p.el.style.transform =
+      'translate3d(' + x.toFixed(3) + 'px,' + yTop.toFixed(3) + 'px,0) rotate(' +
+      tilt.toFixed(3) + 'deg) scale(' + scale.toFixed(4) + ')'
+    // sheen tracks world position → sweeps as the device crosses frame
+    const sx = ((x / PERIOD) * 4 % 1 + 1) % 1
+    p.sheen.style.backgroundPosition = (100 - sx * 200).toFixed(2) + '% 0%'
+    p.sheen.style.opacity = (0.42 + 0.32 * Math.cos(ph)).toFixed(3)
+  }
+
+  // blooms orbit on closed ellipses
+  bloomA.style.transform = 'translate3d(' +
+    (W * (0.22 + 0.070 * Math.cos(a)))       .toFixed(2) + 'px,' +
+    (H * (0.10 + 0.085 * Math.sin(a)))       .toFixed(2) + 'px,0)'
+  bloomB.style.transform = 'translate3d(' +
+    (W * (0.86 + 0.065 * Math.cos(a + 2.1))) .toFixed(2) + 'px,' +
+    (H * (0.92 + 0.070 * Math.sin(a + 2.1))) .toFixed(2) + 'px,0)'
+  bloomC.style.transform = 'translate3d(' +
+    (W * (0.52 + 0.110 * Math.cos(a * 2 + 0.6))).toFixed(2) + 'px,' +
+    (H * (0.44 + 0.055 * Math.sin(a * 2 + 0.6))).toFixed(2) + 'px,0)'
+
+  // texture drifts exactly one tile per loop
+  document.getElementById('texture').style.transform =
+    'translate3d(' + (-u * TILE).toFixed(3) + 'px,' + (-u * TILE * 0.5).toFixed(3) + 'px,0)'
+
+  // mascot: PET_LOOPS whole cycles per clip + a closed float
+  const f = Math.floor(u * PET_LOOPS * PET_FRAMES) % PET_FRAMES
+  if (f !== petOn) {
+    if (petOn >= 0) petImgs[petOn].classList.remove('on')
+    petImgs[f].classList.add('on')
+    petOn = f
+  }
+  const fy = Math.sin(a * 2) * (9 * K)
+  const fr = Math.sin(a) * 1.4
+  petWrap.style.transform = 'translate3d(0,' + fy.toFixed(3) + 'px,0) rotate(' + fr.toFixed(3) + 'deg)'
+  petShadow.style.transform =
+    'translateX(-50%) scale(' + (1 - Math.sin(a * 2) * 0.07).toFixed(4) + ')'
+  petShadow.style.opacity = (0.55 - Math.sin(a * 2) * 0.10).toFixed(3)
+
+  // type: a whisper of parallax, closed over the loop
+  eyebrow.style.transform = 'translate3d(' + (Math.sin(a) * 5 * K).toFixed(2) + 'px,0,0)'
+  title.style.transform   = 'translate3d(' + (Math.sin(a + 0.5) * 3.5 * K).toFixed(2) + 'px,' +
+                            (Math.cos(a) * 2.5 * K).toFixed(2) + 'px,0)'
+  tagline.style.transform = 'translate3d(' + (Math.sin(a + 1.0) * 2.5 * K).toFixed(2) + 'px,0,0)'
+}
+
+window.setT = setT
+
+window.ready = (async () => {
+  await document.fonts.ready
+  const all = [...petImgs, ...document.querySelectorAll('.screen img')]
+  await Promise.all(all.map(i => (i.decode ? i.decode().catch(() => {}) : Promise.resolve())))
+  setT(0)
+  return true
+})()
+</script>
+</body>
+</html>
